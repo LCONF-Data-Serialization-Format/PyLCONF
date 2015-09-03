@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+    
+    <url>
+     <loc>https://lconf-data-serialization-format/PyLCONF//</loc>
+     <lastmod>2015-09-03</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+    
+
+    
+        
+    <url>
+     <loc>https://lconf-data-serialization-format/PyLCONF//about/readme/</loc>
+     <lastmod>2015-09-03</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+        
+    <url>
+     <loc>https://lconf-data-serialization-format/PyLCONF//about/license/</loc>
+     <lastmod>2015-09-03</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+        
+    <url>
+     <loc>https://lconf-data-serialization-format/PyLCONF//about/changelog/</loc>
+     <lastmod>2015-09-03</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+        
+    
+
+</urlset>

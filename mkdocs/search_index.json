@@ -1,0 +1,84 @@
+{
+    "docs": [
+        {
+            "location": "/",
+            "text": "PyLCONF\n\n\nA LCONF parser and emitter for Python.\n\n\nFor \nofficial\n information visit \nPyLCONF web site\n.\n\n\nThe LCONF-Data-Serialization-Format in short \nLCONF\n is a lightweight, text-based, data serialization format \nwith\nemphasis on being human-friendly\n.",
+            "title": "Home"
+        },
+        {
+            "location": "/#pylconf",
+            "text": "A LCONF parser and emitter for Python.  For  official  information visit  PyLCONF web site .  The LCONF-Data-Serialization-Format in short  LCONF  is a lightweight, text-based, data serialization format  with\nemphasis on being human-friendly .",
+            "title": "PyLCONF"
+        },
+        {
+            "location": "/about/readme/",
+            "text": "The PyLCONF\n\n\nA LCONF parser and emitter for Python.\n\n\nWeb Presence\n\n\n\n\nPyLCONF \nweb site\n\n\nPyLCONF \ngithub repository",
+            "title": "Readme"
+        },
+        {
+            "location": "/about/readme/#the-pylconf",
+            "text": "A LCONF parser and emitter for Python.",
+            "title": "The PyLCONF"
+        },
+        {
+            "location": "/about/readme/#web-presence",
+            "text": "PyLCONF  web site  PyLCONF  github repository",
+            "title": "Web Presence"
+        },
+        {
+            "location": "/about/license/",
+            "text": "Copyrights \n Licenses\n\n\nThe \nPyLCONF package\n is licensed under the MIT \"Expat\" License:\n\n\n\n\nCopyright (c) 2014 - 2015, \npeter1000\n \nhttps://github.com/peter1000\n.\n\n\nPermission is hereby granted, free of charge, to any person obtaining\na copy of this software and associated documentation files (the\n\"Software\"), to deal in the Software without restriction, including\nwithout limitation the rights to use, copy, modify, merge, publish,\ndistribute, sublicense, and/or sell copies of the Software, and to\npermit persons to whom the Software is furnished to do so, subject to\nthe following conditions:\n\n\nThe above copyright notice and this permission notice shall be\nincluded in all copies or substantial portions of the Software.\n\n\nTHE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\nEXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.\nIN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY\nCLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,\nTORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE\nSOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\n\n\n\nLicenses for incorporated software\n\n\nOther licenses can be found in the LICENSES directory.\n\n\nThe \nPyLCONF package\n includes code derived from the following projects, which have their own licenses:\n\n\nradarmodel\n\n\nParts of setup.py are based/copied from: https://github.com/ryanvolz/radarmodel (Copyright (c) 2014, Ryan Volz)\n\n\nDistributed under the terms of the BSD 3-Clause (\"BSD New\") license.\n\n\n\nReOBJ\n\n\nMost of the code in \nstructure_classes.py\n, \nlconf_classes.py\n: is an adjusted/copied code of the ReOBJ project\nby the same author: \nThe BSD 3-Clause License\n\n\nReOBJ\n  (Copyright (c) 2014, peter1000 https://github.com/peter1000)",
+            "title": "License"
+        },
+        {
+            "location": "/about/license/#copyrights-licenses",
+            "text": "The  PyLCONF package  is licensed under the MIT \"Expat\" License:   Copyright (c) 2014 - 2015,  peter1000   https://github.com/peter1000 .  Permission is hereby granted, free of charge, to any person obtaining\na copy of this software and associated documentation files (the\n\"Software\"), to deal in the Software without restriction, including\nwithout limitation the rights to use, copy, modify, merge, publish,\ndistribute, sublicense, and/or sell copies of the Software, and to\npermit persons to whom the Software is furnished to do so, subject to\nthe following conditions:  The above copyright notice and this permission notice shall be\nincluded in all copies or substantial portions of the Software.  THE SOFTWARE IS PROVIDED \"AS IS\", WITHOUT WARRANTY OF ANY KIND,\nEXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF\nMERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.\nIN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY\nCLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,\nTORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE\nSOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.",
+            "title": "Copyrights &amp; Licenses"
+        },
+        {
+            "location": "/about/license/#licenses-for-incorporated-software",
+            "text": "Other licenses can be found in the LICENSES directory.  The  PyLCONF package  includes code derived from the following projects, which have their own licenses:",
+            "title": "Licenses for incorporated software"
+        },
+        {
+            "location": "/about/license/#radarmodel",
+            "text": "Parts of setup.py are based/copied from: https://github.com/ryanvolz/radarmodel (Copyright (c) 2014, Ryan Volz)  Distributed under the terms of the BSD 3-Clause (\"BSD New\") license.",
+            "title": "radarmodel"
+        },
+        {
+            "location": "/about/license/#reobj",
+            "text": "Most of the code in  structure_classes.py ,  lconf_classes.py : is an adjusted/copied code of the ReOBJ project\nby the same author:  The BSD 3-Clause License  ReOBJ   (Copyright (c) 2014, peter1000 https://github.com/peter1000)",
+            "title": "ReOBJ"
+        },
+        {
+            "location": "/about/changelog/",
+            "text": "v0.1.0 (xxxx-xx-xx)\n\n\nSummary\n\n\n\n\nRename \nLCONF\n to \nPyLCONF\n.\n\n\nImplementation of the new \nLCONF-Data-Serialization-Format-Standard\n \nv0.1.0\n.\n\n\nChange to P-Versioning Based On \nSemantic Versioning\n. Restart with version \n0.1.0\n.\n\n\n\n\nHistory\n\n\n\n\n\n\nIn early 2014 \npeter1000\n \nhttps://github.com/peter1000/\n released a first \nLCONF\n specification and an\n    implementation as Julia library.\n\n\n\n\n\n\n2014-10-08 the last \nLCONF\n Version 7.0.0  was released.\n\n\n\n\n\n\n\n\nP-Versioning Based On \nSemantic Versioning\n\n\nIMPORTANT DIFFERENCE\n to the \nSemantic Versioning 2.0.0\n \n\n\n\n\n\n\nA pre-release version MUST NOT be added.\n\n\n\n\n\n\nBuild metadata MUST comprise only ASCII alphanumerics [0-9A-Za-z] and MUST NOT contain any hyphen.\n\n\n\n\n\n\nPackage Versioning\n\n\n\n\n\n\nSoftware and related packages using this modified Semantic Versioning MUST declare a public API.\n This API could\n    be declared in the code itself or exist strictly in documentation. However it is done, it should be precise and\n    comprehensive.\n\n\n\n\n\n\nA normal version number MUST take the form X.Y.Z where X, Y, and Z are non-negative integers, and MUST NOT contain\n    leading zeroes. X is the major version, Y is the minor version, and Z is the patch version.\n    Each element MUST increase numerically. For instance: 1.9.0 -\n 1.10.0 -\n 1.11.0.\n\n\n\n\n\n\nOnce a versioned package has been released, the contents of that version MUST NOT be modified. Any modifications\n    MUST be released as a new version.\n\n\n\n\n\n\nMajor version zero (0.y.z) is for initial development. Anything may change at any time. The public API should not be\n    considered stable.\n\n\n\n\n\n\nVersion 1.0.0 defines the public API. The way in which the version number is incremented after this release is\n    dependent on this public API and how it changes.\n\n\n\n\n\n\nPatch version Z (x.y.Z | x \n 0) MUST be incremented if only backwards compatible bug fixes are introduced. A bug fix\n    is defined as an internal change that fixes incorrect behavior.\n\n\n\n\n\n\nMinor version Y (x.Y.z | x \n 0) MUST be incremented if new, backwards compatible functionality is introduced to the\n    public API. It MUST be incremented if any public API functionality is marked as deprecated. It MAY be incremented\n    if substantial new functionality or improvements are introduced within the private code. It MAY include patch level\n    changes. Patch version MUST be reset to 0 when minor version is incremented.\n\n\n\n\n\n\nMajor version X (X.y.z | X \n 0) MUST be incremented if any backwards incompatible changes are introduced to the\n    public API. It MAY include minor and patch level changes. Patch and minor version MUST be reset to 0 when major\n    version is incremented.\n\n\n\n\n\n\nBuild metadata MAY be denoted by appending a plus sign and a series of dot separated identifiers immediately\n    following the patch version. Identifiers MUST comprise only ASCII alphanumerics [0-9A-Za-z] and MUST NOT contain\n    hyphen. Identifiers MUST NOT be empty. Build metadata SHOULD be ignored when determining version precedence. Thus\n    two versions that differ only in the build metadata, have the same precedence.  \n\n    Examples: 1.0.0+001, 1.0.0+20130313144700, 1.0.0+exp.sha.5114f85, 1.0.7+r128.g4560914.\n\n\n\n\n\n\nWhat do I do if I accidentally release a backwards incompatible change as a minor version?\n\n\nAs soon as you realize that you've broken the Semantic Versioning spec, fix the problem and release a new minor\nversion that corrects the problem and restores backwards compatibility. Even under this circumstance, it is\nunacceptable to modify versioned releases. If it's appropriate, document the offending version and inform your\nusers of the problem so that they are aware of the offending version.\n\n\n\n\n\n\nHow should I handle deprecating functionality?\n\n\nDeprecating existing functionality is a normal part of software development and is often required to make forward\nprogress. When you deprecate part of your public API, you should do two things:\n\n\n\n\nupdate your documentation to let users know about the change,\n\n\nissue a new minor release with the deprecation in place. Before you completely remove the functionality in a new\n    major release there should be at least one minor release that contains the deprecation so that users can\n    smoothly transition to the new API.",
+            "title": "Changelog"
+        },
+        {
+            "location": "/about/changelog/#v010-xxxx-xx-xx",
+            "text": "",
+            "title": "v0.1.0 (xxxx-xx-xx)"
+        },
+        {
+            "location": "/about/changelog/#summary",
+            "text": "Rename  LCONF  to  PyLCONF .  Implementation of the new  LCONF-Data-Serialization-Format-Standard   v0.1.0 .  Change to P-Versioning Based On  Semantic Versioning . Restart with version  0.1.0 .",
+            "title": "Summary"
+        },
+        {
+            "location": "/about/changelog/#history",
+            "text": "In early 2014  peter1000   https://github.com/peter1000/  released a first  LCONF  specification and an\n    implementation as Julia library.    2014-10-08 the last  LCONF  Version 7.0.0  was released.",
+            "title": "History"
+        },
+        {
+            "location": "/about/changelog/#p-versioning-based-on-semantic-versioning",
+            "text": "IMPORTANT DIFFERENCE  to the  Semantic Versioning 2.0.0      A pre-release version MUST NOT be added.    Build metadata MUST comprise only ASCII alphanumerics [0-9A-Za-z] and MUST NOT contain any hyphen.",
+            "title": "P-Versioning Based On Semantic Versioning"
+        },
+        {
+            "location": "/about/changelog/#package-versioning",
+            "text": "Software and related packages using this modified Semantic Versioning MUST declare a public API.  This API could\n    be declared in the code itself or exist strictly in documentation. However it is done, it should be precise and\n    comprehensive.    A normal version number MUST take the form X.Y.Z where X, Y, and Z are non-negative integers, and MUST NOT contain\n    leading zeroes. X is the major version, Y is the minor version, and Z is the patch version.\n    Each element MUST increase numerically. For instance: 1.9.0 -  1.10.0 -  1.11.0.    Once a versioned package has been released, the contents of that version MUST NOT be modified. Any modifications\n    MUST be released as a new version.    Major version zero (0.y.z) is for initial development. Anything may change at any time. The public API should not be\n    considered stable.    Version 1.0.0 defines the public API. The way in which the version number is incremented after this release is\n    dependent on this public API and how it changes.    Patch version Z (x.y.Z | x   0) MUST be incremented if only backwards compatible bug fixes are introduced. A bug fix\n    is defined as an internal change that fixes incorrect behavior.    Minor version Y (x.Y.z | x   0) MUST be incremented if new, backwards compatible functionality is introduced to the\n    public API. It MUST be incremented if any public API functionality is marked as deprecated. It MAY be incremented\n    if substantial new functionality or improvements are introduced within the private code. It MAY include patch level\n    changes. Patch version MUST be reset to 0 when minor version is incremented.    Major version X (X.y.z | X   0) MUST be incremented if any backwards incompatible changes are introduced to the\n    public API. It MAY include minor and patch level changes. Patch and minor version MUST be reset to 0 when major\n    version is incremented.    Build metadata MAY be denoted by appending a plus sign and a series of dot separated identifiers immediately\n    following the patch version. Identifiers MUST comprise only ASCII alphanumerics [0-9A-Za-z] and MUST NOT contain\n    hyphen. Identifiers MUST NOT be empty. Build metadata SHOULD be ignored when determining version precedence. Thus\n    two versions that differ only in the build metadata, have the same precedence.   \n    Examples: 1.0.0+001, 1.0.0+20130313144700, 1.0.0+exp.sha.5114f85, 1.0.7+r128.g4560914.    What do I do if I accidentally release a backwards incompatible change as a minor version?  As soon as you realize that you've broken the Semantic Versioning spec, fix the problem and release a new minor\nversion that corrects the problem and restores backwards compatibility. Even under this circumstance, it is\nunacceptable to modify versioned releases. If it's appropriate, document the offending version and inform your\nusers of the problem so that they are aware of the offending version.    How should I handle deprecating functionality?  Deprecating existing functionality is a normal part of software development and is often required to make forward\nprogress. When you deprecate part of your public API, you should do two things:   update your documentation to let users know about the change,  issue a new minor release with the deprecation in place. Before you completely remove the functionality in a new\n    major release there should be at least one minor release that contains the deprecation so that users can\n    smoothly transition to the new API.",
+            "title": "Package Versioning"
+        }
+    ]
+}

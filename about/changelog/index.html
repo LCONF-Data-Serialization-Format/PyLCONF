@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <meta name="author" content="peter1000">
+        <link rel="canonical" href="https://lconf-data-serialization-format/PyLCONF/about/changelog/">
+        <link rel="shortcut icon" href="../../images/lconf_favicon.ico">
+        
+
+	<title>Changelog - PyLCONF</title>
+
+        <link href="../../css/bootstrap-3.0.3.min.css" rel="stylesheet">
+        <link href="../../css/font-awesome-4.0.3.css" rel="stylesheet">
+        <link rel="stylesheet" href="../../css/highlight.css">
+        <link href="../../css/base.css" rel="stylesheet">
+
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+            <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+            <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+        <![endif]-->
+
+        
+    </head>
+
+    <body>
+
+        <div class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container">
+
+        <!-- Collapsed navigation -->
+        <div class="navbar-header">
+            <!-- Expander button -->
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+
+            <!-- Main title -->
+            <a class="navbar-brand" href="../..">PyLCONF</a>
+        </div>
+
+        <!-- Expanded navigation -->
+        <div class="navbar-collapse collapse">
+            <!-- Main navigation -->
+            <ul class="nav navbar-nav">
+            
+            
+                <li >
+                    <a href="../..">Home</a>
+                </li>
+            
+            
+            
+                <li class="dropdown active">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">About <b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                    
+                        <li >
+                            <a href="../readme/">Readme</a>
+                        </li>
+                    
+                        <li >
+                            <a href="../license/">License</a>
+                        </li>
+                    
+                        <li class="active">
+                            <a href="./">Changelog</a>
+                        </li>
+                    
+                    </ul>
+                </li>
+            
+            
+            </ul>
+
+            <!-- Search, Navigation and Repo links -->
+            <ul class="nav navbar-nav navbar-right">
+                <li >
+                    <a rel="next" href="../license/">
+                        <i class="fa fa-arrow-left"></i> Previous
+                    </a>
+                </li>
+                <li class="disabled">
+                    <a rel="prev" >
+                        Next <i class="fa fa-arrow-right"></i>
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="https://github.com/LCONF-Data-Serialization-Format/PyLCONF/">
+                        
+                            <i class="fa fa-github"></i>
+                        
+                        GitHub
+                    </a>
+                </li>
+                
+            </ul>
+        </div>
+    </div>
+</div>
+
+        <div class="container">
+            <div class="col-md-3"><div class="bs-sidebar hidden-print affix well" role="complementary">
+    <ul class="nav bs-sidenav">
+    
+        <li class="main active"><a href="#v010-xxxx-xx-xx">v0.1.0 (xxxx-xx-xx)</a></li>
+        
+            <li><a href="#summary">Summary</a></li>
+        
+    
+        <li class="main "><a href="#history">History</a></li>
+        
+    
+        <li class="main "><a href="#p-versioning-based-on-semantic-versioning">P-Versioning Based On Semantic Versioning</a></li>
+        
+            <li><a href="#package-versioning">Package Versioning</a></li>
+        
+    
+    </ul>
+</div></div>
+            <div class="col-md-9" role="main">
+
+<h1 id="v010-xxxx-xx-xx">v0.1.0 (xxxx-xx-xx)</h1>
+<h2 id="summary">Summary</h2>
+<ul>
+<li>Rename <em>LCONF</em> to <strong>PyLCONF</strong>.</li>
+<li>Implementation of the new <em>LCONF-Data-Serialization-Format-Standard</em> <strong>v0.1.0</strong>.</li>
+<li>Change to P-Versioning Based On <a href="http://semver.org/">Semantic Versioning</a>. Restart with version <code>0.1.0</code>.</li>
+</ul>
+<h1 id="history">History</h1>
+<ul>
+<li>
+<p>In early 2014 <strong>peter1000</strong> <a href="https://github.com/peter1000/">https://github.com/peter1000/</a> released a first <em>LCONF</em> specification and an
+    implementation as Julia library.</p>
+</li>
+<li>
+<p>2014-10-08 the last <em>LCONF</em> Version 7.0.0  was released.</p>
+</li>
+</ul>
+<hr />
+<h1 id="p-versioning-based-on-semantic-versioning">P-Versioning Based On <a href="http://semver.org/">Semantic Versioning</a></h1>
+<p><strong>IMPORTANT DIFFERENCE</strong> to the <em>Semantic Versioning 2.0.0</em> <br /></p>
+<ul>
+<li>
+<p>A pre-release version MUST NOT be added.</p>
+</li>
+<li>
+<p>Build metadata MUST comprise only ASCII alphanumerics [0-9A-Za-z] and MUST NOT contain any hyphen.</p>
+</li>
+</ul>
+<h2 id="package-versioning">Package Versioning</h2>
+<ol>
+<li>
+<p><strong>Software and related packages using this modified Semantic Versioning MUST declare a public API.</strong> This API could
+    be declared in the code itself or exist strictly in documentation. However it is done, it should be precise and
+    comprehensive.</p>
+</li>
+<li>
+<p>A normal version number MUST take the form X.Y.Z where X, Y, and Z are non-negative integers, and MUST NOT contain
+    leading zeroes. X is the major version, Y is the minor version, and Z is the patch version.
+    Each element MUST increase numerically. For instance: 1.9.0 -&gt; 1.10.0 -&gt; 1.11.0.</p>
+</li>
+<li>
+<p>Once a versioned package has been released, the contents of that version MUST NOT be modified. Any modifications
+    MUST be released as a new version.</p>
+</li>
+<li>
+<p>Major version zero (0.y.z) is for initial development. Anything may change at any time. The public API should not be
+    considered stable.</p>
+</li>
+<li>
+<p><strong>Version 1.0.0 defines the public API. The way in which the version number is incremented after this release is
+    dependent on this public API and how it changes.</strong></p>
+</li>
+<li>
+<p>Patch version Z (x.y.Z | x &gt; 0) MUST be incremented if only backwards compatible bug fixes are introduced. A bug fix
+    is defined as an internal change that fixes incorrect behavior.</p>
+</li>
+<li>
+<p>Minor version Y (x.Y.z | x &gt; 0) MUST be incremented if new, backwards compatible functionality is introduced to the
+    public API. It MUST be incremented if any public API functionality is marked as deprecated. It MAY be incremented
+    if substantial new functionality or improvements are introduced within the private code. It MAY include patch level
+    changes. Patch version MUST be reset to 0 when minor version is incremented.</p>
+</li>
+<li>
+<p>Major version X (X.y.z | X &gt; 0) MUST be incremented if any backwards incompatible changes are introduced to the
+    public API. It MAY include minor and patch level changes. Patch and minor version MUST be reset to 0 when major
+    version is incremented.</p>
+</li>
+<li>
+<p>Build metadata MAY be denoted by appending a plus sign and a series of dot separated identifiers immediately
+    following the patch version. Identifiers MUST comprise only ASCII alphanumerics [0-9A-Za-z] and MUST NOT contain
+    hyphen. Identifiers MUST NOT be empty. Build metadata SHOULD be ignored when determining version precedence. Thus
+    two versions that differ only in the build metadata, have the same precedence.  <br />
+    Examples: 1.0.0+001, 1.0.0+20130313144700, 1.0.0+exp.sha.5114f85, 1.0.7+r128.g4560914.</p>
+</li>
+<li>
+<p>What do I do if I accidentally release a backwards incompatible change as a minor version?</p>
+<p>As soon as you realize that you've broken the Semantic Versioning spec, fix the problem and release a new minor
+version that corrects the problem and restores backwards compatibility. Even under this circumstance, it is
+unacceptable to modify versioned releases. If it's appropriate, document the offending version and inform your
+users of the problem so that they are aware of the offending version.</p>
+</li>
+<li>
+<p>How should I handle deprecating functionality?</p>
+<p>Deprecating existing functionality is a normal part of software development and is often required to make forward
+progress. When you deprecate part of your public API, you should do two things:</p>
+<ol>
+<li>update your documentation to let users know about the change,</li>
+<li>issue a new minor release with the deprecation in place. Before you completely remove the functionality in a new
+    major release there should be at least one minor release that contains the deprecation so that users can
+    smoothly transition to the new API.</li>
+</ol>
+</li>
+</ol></div>
+        </div>
+
+    <footer class="col-md-12">
+        <hr>
+        
+        <center>Copyright (c) 2015, <strong>peter1000</strong> <a href="https://github.com/peter1000">https://github.com/peter1000</a>.</center>
+        
+        <center>Documentation built with <a href="http://www.mkdocs.org/">MkDocs</a>.</center>
+    </footer>
+
+
+        <script src="../../js/jquery-1.10.2.min.js"></script>
+        <script src="../../js/bootstrap-3.0.3.min.js"></script>
+        <script src="../../js/highlight.pack.js"></script>
+        <script src="../../js/base.js"></script>
+    </body>
+</html>
