@@ -1,0 +1,361 @@
+# This is the LCONF-Data-Serialization-Format-Standard Example 1 LCONF-SCHEMA-DEFINITION
+
+#
+# DEFAULT SETTINGS LIST:
+#    - DEFAULT
+#    - EMPTY_REPLACEMENT
+#
+# DEFAULT SETTINGS TABLE:
+#    | DEFAULT
+#    | EMPTY_REPLACEMENT
+#
+# DEFAULT SETTINGS String:
+#    DEFAULT ::
+#    EMPTY_REPLACEMENT ::
+#
+#
+# DEFAULT SETTINGS NONE STRING TYPES:
+#    DEFAULT :: NOTSET
+#    EMPTY_REPLACEMENT :: NOTSET
+
+
+
+___SECTION :: 4 :: lconfsd :: lconf_standard_example1
+# <FamilyName>: Please use for the first letter uppercase followed by lowercase letters.
+#   e.g. `Williams`
+. FamilyName | PAIR
+    ITEM :: REQUIRED_NOT_EMPTY | String
+    DEFAULT ::
+    EMPTY_REPLACEMENT ::
+
+. StreetAddress1 | PAIR
+    ITEM :: REQUIRED_NOT_EMPTY | String
+    DEFAULT ::
+    EMPTY_REPLACEMENT ::
+
+. StreetAddress2 | PAIR
+    ITEM :: OPTIONAL | String
+    DEFAULT ::
+    EMPTY_REPLACEMENT ::
+
+. City | PAIR
+    ITEM :: REQUIRED_NOT_EMPTY | String
+    DEFAULT ::
+    EMPTY_REPLACEMENT ::
+
+. State | PAIR
+    ITEM :: REQUIRED_NOT_EMPTY | String {2,2}   # minchars 2, maxchars 2
+    DEFAULT ::
+    EMPTY_REPLACEMENT ::
+
+. ZIPCode | PAIR
+    ITEM :: REQUIRED_NOT_EMPTY | Integer {10000,99999}     # min, max
+    DEFAULT :: NOTSET
+    EMPTY_REPLACEMENT :: NOTSET
+
+. Country | PAIR
+    ITEM :: REQUIRED_NOT_EMPTY | String
+    DEFAULT ::
+    EMPTY_REPLACEMENT ::
+
+. husband | Single-Block
+
+    . first_name | PAIR
+        ITEM :: REQUIRED_NOT_EMPTY | String
+        DEFAULT ::
+        EMPTY_REPLACEMENT ::
+
+    . sex | PAIR
+        ITEM :: REQUIRED | String [M,F]        # [M,F]  expected Values
+        DEFAULT ::
+        EMPTY_REPLACEMENT :: No Comment
+
+    . date_of_birth | PAIR
+        ITEM :: REQUIRED_NOT_EMPTY | Date_Day
+        DEFAULT :: NOTSET
+        EMPTY_REPLACEMENT :: NOTSET
+
+    . place_of_birth | PAIR
+        ITEM :: REQUIRED_NOT_EMPTY | String
+        DEFAULT ::
+        EMPTY_REPLACEMENT ::
+
+    . telephone_number | PAIR
+        ITEM :: REQUIRED_NOT_EMPTY | Formatted-Digits-String (+@ @@@ @@@ @@@@)   # (+@ @@@ @@@ @@@@)  format
+        DEFAULT ::
+        EMPTY_REPLACEMENT ::
+
+    . mobile_numbers | List {0,5}            # min, max elements in list
+        ITEM :: OPTIONAL | Formatted-Digits-String ((@@@) @@@-@@@@)  # List Values format
+        - DEFAULT
+        - EMPTY_REPLACEMENT
+
+    . registered | PAIR
+        ITEM :: OPTIONAL | Boolean
+        DEFAULT :: NOTSET
+        EMPTY_REPLACEMENT :: NOTSET
+
+    . registration_time | PAIR
+        ITEM :: OPTIONAL | DateTime_Minute
+        DEFAULT :: NOTSET
+        EMPTY_REPLACEMENT :: NOTSET
+
+    . credit_cards | UnNamed-Repeated-Block {1, 5}    #  (minimum required blocks, maximum allowed blocks)
+
+        . TEMPLATE-BLOCK | Single-Block
+            . issuing_network | PAIR
+                ITEM :: REQUIRED_NOT_EMPTY | String
+                DEFAULT ::
+                EMPTY_REPLACEMENT ::
+
+            . card_number | PAIR
+                ITEM :: REQUIRED_NOT_EMPTY | Digits-String {15, 19}     # (mindigits 15, maxdigitsdigits 19)
+                DEFAULT ::
+                EMPTY_REPLACEMENT ::
+
+    . main_bank_account | Single-Block
+
+        . bank_name | PAIR
+            ITEM :: REQUIRED_NOT_EMPTY | String
+            DEFAULT ::
+            EMPTY_REPLACEMENT ::
+
+        . bank_routing_number | PAIR
+            ITEM :: REQUIRED_NOT_EMPTY | Formatted-Digits-String (@@@@-@@@@-@)
+            DEFAULT ::
+            EMPTY_REPLACEMENT ::
+
+        . bank_account_number | PAIR
+            ITEM :: REQUIRED_NOT_EMPTY | Digits-String {10, 12}     # (mindigits 10, maxdigitsdigits 12)
+            DEFAULT ::
+            EMPTY_REPLACEMENT ::
+
+        . bank_address | PAIR
+            ITEM :: REQUIRED_NOT_EMPTY | String  {1, 40}
+            DEFAULT ::
+            EMPTY_REPLACEMENT ::
+
+        . bank_address | PAIR
+            ITEM :: REQUIRED_NOT_EMPTY | String {8, 11}
+            DEFAULT ::
+            EMPTY_REPLACEMENT ::
+
+        . account_saldo | PAIR
+            ITEM :: REQUIRED_NOT_EMPTY | Float
+            DEFAULT :: NOTSET
+            EMPTY_REPLACEMENT :: NOTSET
+
+        . saving_account_saldo | PAIR
+            ITEM :: REQUIRED_NOT_EMPTY | Float
+            DEFAULT :: NOTSET
+            EMPTY_REPLACEMENT :: NOTSET
+
+    . favorites | Table {0,5}
+        ITEM :: OPTIONAL
+        - COLUMNS
+            # ColumnName | Column-DEFAULT | Column-EMPTY_REPLACEMENT | Column-Value-REQUIRED | Column-Type & any options
+            food | EMPTY | EMPTY | REQUIRED_NOT_EMPTY | String
+            sport | EMPTY | EMPTY | OPTIONAL | String
+            color | EMPTY | EMPTY | OPTIONAL | String
+            number | NOTSET | NOTSET | OPTIONAL | Number
+        | DEFAULT
+            # food                 | sport  | color  | number |
+            # -------------------- | ------ | ------ | ------ |
+            | Spaghetti            | Soccer | NOTSET | 27     |
+        | EMPTY_REPLACEMENT
+
+    . LanguageSkills :|: Named-Repeated-Block
+
+        . TEMPLATE-BLOCK
+            . Listening | PAIR
+                ITEM :: REQUIRED_NOT_EMPTY | String [none, basic, good, very good, excellent, professional proficiency, native]
+                DEFAULT ::
+                EMPTY_REPLACEMENT ::
+
+            . Speaking | PAIR
+                ITEM :: REQUIRED_NOT_EMPTY | String [none, basic, good, very good, excellent, professional proficiency, native]
+                DEFAULT ::
+                EMPTY_REPLACEMENT ::
+
+            . Reading | PAIR
+                ITEM :: REQUIRED_NOT_EMPTY | String [none, basic, good, very good, excellent, professional proficiency]
+                DEFAULT ::
+                EMPTY_REPLACEMENT ::
+
+            . Writing | PAIR
+                ITEM :: REQUIRED_NOT_EMPTY | String [none, basic, good, very good, excellent, professional proficiency]
+                DEFAULT ::
+                EMPTY_REPLACEMENT ::
+
+. wife | Single-Block
+
+    . first_name | PAIR
+        ITEM :: REQUIRED_NOT_EMPTY | String
+        DEFAULT ::
+        EMPTY_REPLACEMENT ::
+
+    . sex | PAIR
+        ITEM :: REQUIRED | String [M,F]        # [M,F]  expected Values
+        DEFAULT ::
+        EMPTY_REPLACEMENT :: No Comment
+
+    . date_of_birth | PAIR
+        ITEM :: REQUIRED_NOT_EMPTY | Date_Day
+        DEFAULT :: NOTSET
+        EMPTY_REPLACEMENT :: NOTSET
+
+    . place_of_birth | PAIR
+        ITEM :: REQUIRED_NOT_EMPTY | String
+        DEFAULT ::
+        EMPTY_REPLACEMENT ::
+
+    . telephone_number | PAIR
+        ITEM :: REQUIRED_NOT_EMPTY | Formatted-Digits-String (+@ @@@ @@@ @@@@)   # (+@ @@@ @@@ @@@@)  format
+        DEFAULT ::
+        EMPTY_REPLACEMENT ::
+
+    . mobile_numbers | List {0,5}
+        ITEM :: OPTIONAL | Formatted-Digits-String ((@@@) @@@-@@@@)
+        - DEFAULT
+        - EMPTY_REPLACEMENT
+
+    registered :: true
+    . registered | PAIR
+        ITEM :: OPTIONAL | Boolean
+        DEFAULT :: NOTSET
+        EMPTY_REPLACEMENT :: NOTSET
+
+    . registration_time | PAIR
+        ITEM :: OPTIONAL | DateTime_Minute
+        DEFAULT :: NOTSET
+        EMPTY_REPLACEMENT :: NOTSET
+
+    . favorites | Table
+        ITEM :: OPTIONAL
+        - COLUMNS
+            # ColumnName | Column-DEFAULT | Column-EMPTY_REPLACEMENT | Column-Value-REQUIRED | Column-Type & any options
+            food | EMPTY | EMPTY | REQUIRED_NOT_EMPTY | String
+            sport | EMPTY | EMPTY | OPTIONAL | String
+            color | EMPTY | EMPTY | OPTIONAL | String
+            number | NOTSET | NOTSET | OPTIONAL | Number
+        | DEFAULT
+            # food                 | sport  | color  | number |
+            # -------------------- | ------ | ------ | ------ |
+            | Spaghetti            | Soccer | NOTSET | 27     |
+        | EMPTY_REPLACEMENT
+
+    . LanguageSkills :|: Named-Repeated-Block
+
+        . TEMPLATE-BLOCK
+            . Listening | PAIR
+                ITEM :: REQUIRED_NOT_EMPTY | String [none, basic, good, very good, excellent, professional proficiency, native]
+                DEFAULT ::
+                EMPTY_REPLACEMENT ::
+
+            . Speaking | PAIR
+                ITEM :: REQUIRED_NOT_EMPTY | String [none, basic, good, very good, excellent, professional proficiency, native]
+                DEFAULT ::
+                EMPTY_REPLACEMENT ::
+
+            . Reading | PAIR
+                ITEM :: REQUIRED_NOT_EMPTY | String [none, basic, good, very good, excellent, professional proficiency]
+                DEFAULT ::
+                EMPTY_REPLACEMENT ::
+
+            . Writing | PAIR
+                ITEM :: REQUIRED_NOT_EMPTY | String [none, basic, good, very good, excellent, professional proficiency]
+                DEFAULT ::
+                EMPTY_REPLACEMENT ::
+
+
+. Children | Named-Repeated-Block
+
+    # Child Fisrt Name must be used as Block Name
+    . TEMPLATE-BLOCK | Single-Block
+        . Sex | PAIR
+            ITEM :: OPTIONAL | String [M,F]        # [M,F]  expected Values
+            DEFAULT ::
+            EMPTY_REPLACEMENT :: No Comment
+
+    . DateOfBirth | PAIR
+        ITEM :: OPTIONAL | Date_Day
+        DEFAULT :: NOTSET
+        EMPTY_REPLACEMENT :: NOTSET
+
+    . PlaceOfBirth | PAIR
+        ITEM :: OPTIONAL | String
+        DEFAULT ::
+        EMPTY_REPLACEMENT ::
+
+    . MobileNumbers | List {0,5}            # min, max elements in list
+        ITEM :: OPTIONAL | Formatted-Digits-String ((@@@) @@@-@@@@)  # List Values format
+        - DEFAULT
+        - EMPTY_REPLACEMENT
+
+    . Registered | PAIR
+        ITEM :: OPTIONAL | Boolean
+        DEFAULT :: NOTSET
+        EMPTY_REPLACEMENT :: NOTSET
+
+    . RegistrationTime | PAIR
+        ITEM :: OPTIONAL | DateTime_Minute
+        DEFAULT :: NOTSET
+        EMPTY_REPLACEMENT :: NOTSET
+
+    . favorites | Table {0,5}
+        ITEM :: OPTIONAL
+        - COLUMNS
+            # ColumnName | Column-DEFAULT | Column-EMPTY_REPLACEMENT | Column-Value-REQUIRED | Column-Type & any options
+            food | EMPTY | EMPTY | REQUIRED_NOT_EMPTY | String
+            sport | EMPTY | EMPTY | OPTIONAL | String
+            color | EMPTY | EMPTY | OPTIONAL | String
+            number | NOTSET | NOTSET | OPTIONAL | Number
+        | DEFAULT
+        | EMPTY_REPLACEMENT
+
+    . LanguageSkills :|: Named-Repeated-Block
+
+        . TEMPLATE-BLOCK
+            . Listening | PAIR
+                ITEM :: REQUIRED_NOT_EMPTY | String [none, basic, good, very good, excellent, professional proficiency, native]
+                DEFAULT ::
+                EMPTY_REPLACEMENT ::
+
+            . Speaking | PAIR
+                ITEM :: REQUIRED_NOT_EMPTY | String [none, basic, good, very good, excellent, professional proficiency, native]
+                DEFAULT ::
+                EMPTY_REPLACEMENT ::
+
+            . Reading | PAIR
+                ITEM :: REQUIRED_NOT_EMPTY | String [none, basic, good, very good, excellent, professional proficiency]
+                DEFAULT ::
+                EMPTY_REPLACEMENT ::
+
+            . Writing | PAIR
+                ITEM :: REQUIRED_NOT_EMPTY | String [none, basic, good, very good, excellent, professional proficiency]
+                DEFAULT ::
+                EMPTY_REPLACEMENT ::
+
+. Recipes :|: Named-Repeated-Block
+
+    . TEMPLATE-BLOCK
+
+        . Ingredients | Table
+            ITEM :: OPTIONAL
+            - COLUMNS
+                # ColumnName | Column-DEFAULT | Column-EMPTY_REPLACEMENT | Column-Value-REQUIRED | Column-Type & any options
+                Item | EMPTY | EMPTY | REQUIRED_NOT_EMPTY | String
+                Measurement | EMPTY | EMPTY | OPTIONAL | String
+                Units | NOTSET | NOTSET | OPTIONAL | Number
+            | DEFAULT
+            | EMPTY_REPLACEMENT
+        . Instructions | List
+            ITEM :: OPTIONAL | String
+            - DEFAULT
+            - EMPTY_REPLACEMENT
+
+. FamilyMonthlySavingsAccountSaldo | PAIR
+    ITEM :: OPTIONAL | Range-By-Number-Of-Elements
+    DEFAULT :: NOTSET
+    EMPTY_REPLACEMENT :: NOTSET
+___END

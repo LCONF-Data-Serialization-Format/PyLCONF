@@ -1,0 +1,10 @@
+recursive-include PyLCONF *
+include CHANGELOG.md
+include LICENSE.md
+include MANIFEST.in
+include README.md
+include requirements.txt
+include setup.cfg
+include setup.py
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]

@@ -1,0 +1,209 @@
+# This is the LCONF-Data-Serialization-Format-Standard Example 2
+
+___SECTION :: 4 :: lconf_standard_example2
+* LCONF_Value_Types
+    . ValueTypes1
+        # Value Not Set
+        key1 :: NOTSET
+
+        # LCONF-String
+        key2 :: Any text
+
+        # LCONF-Digits-String
+
+        registration_number :: 778945215643219945167845123689
+
+        # LCONF-Formatted-Digits-String: `AAA-GG-SSSS`
+        social_security_number :: 123-55-6678
+
+        # Boolean
+        key3 :: true
+        key4 :: false
+
+        # Integer
+        key5 :: +9223372036854775807
+        key6 :: -9223372036854775808
+
+        # Float
+        key7 :: -0.01
+        key8 :: 0.0
+        key9 :: +3.1415
+
+        key10 :: 5e+22
+        key11 :: -2E-2
+
+        key12 :: -1.54e-003
+        key13 :: 6.196E63
+
+        key14 :: 1/8
+        key15 :: +3/4
+
+        # Number: Integer or Float
+        key16 :: +92
+        key17 :: -2E-2
+        key18 :: 1/100
+
+        # Date
+        key19 :: 1932-08
+        key20 :: 2014-11-15
+
+        # Time
+        key21 :: 12:30
+        key22 :: 02:30:42
+        key23 :: 18:53:16.145
+
+        # DateTime
+        key24 :: 2013-07-01T12:30
+        key25 :: 2013-07-01 12:30
+
+        key26 :: 2013-07-01T12:30:59
+        key27 :: 2013-07-01 12:30:59
+
+        key28 :: 2013-07-01 12:30:59.001
+
+        # Range By Number Of Elements
+        # 21 elements: `-10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10`
+        key29 :: -10|1|*21
+
+        # Range By End Value
+        # elements: `-10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5`
+        key30 :: -10|1|5
+
+        # elements: `100.8, 99.53, 98.26, 96.99, 95.72, 94.45, 93.18, 92.1`
+        key31 :: 100.8|-1.27|92.1|FORCE
+
+    . ValueTypes2
+        # All defined but empty values
+        key1 ::
+
+        # LCONF-String
+        key2 ::
+
+        # LCONF-Digits-String
+
+        registration_number ::
+
+        # LCONF-Formatted-Digits-String: `AAA-GG-SSSS`
+        social_security_number ::
+
+        # Boolean
+        key3 ::
+        key4 ::
+
+        # Integer
+        key5 ::
+        key6 ::
+
+        # Float
+        key7 ::
+        key8 ::
+        key9 ::
+
+        key10 ::
+        key11 ::
+
+        key12 ::
+        key13 ::
+
+        key14 ::
+        key15 ::
+
+        # Number: Integer or Float
+        key16 ::
+        key17 ::
+        key18 ::
+
+        # Date
+        key19 ::
+        key20 ::
+
+        # Time
+        key21 ::
+        key22 ::
+        key23 ::
+
+        # DateTime
+        key24 ::
+        key25 ::
+
+        key26 ::
+        key27 ::
+
+        key28 ::
+
+        # Range By Number Of Elements
+        key29 ::
+
+        # Range By End Value
+        key30 ::
+        key31 ::
+
+    . ValueTypes3
+        # All defined but NOTSET values
+        key1 :: NOTSET
+
+        # LCONF-String
+        key2 :: NOTSET
+
+        # LCONF-Digits-String
+
+        registration_number :: NOTSET
+
+        # LCONF-Formatted-Digits-String: `AAA-GG-SSSS`
+        social_security_number :: NOTSET
+
+        # Boolean
+        key3 :: NOTSET
+        key4 :: NOTSET
+
+        # Integer
+        key5 :: NOTSET
+        key6 :: NOTSET
+
+        # Float
+        key7 :: NOTSET
+        key8 :: NOTSET
+        key9 :: NOTSET
+
+        key10 :: NOTSET
+        key11 :: NOTSET
+
+        key12 :: NOTSET
+        key13 :: NOTSET
+
+        key14 :: NOTSET
+        key15 :: NOTSET
+
+        # Number: Integer or Float
+        key16 :: NOTSET
+        key17 :: NOTSET
+        key18 :: NOTSET
+
+        # Date
+        key19 :: NOTSET
+        key20 :: NOTSET
+
+        # Time
+        key21 :: NOTSET
+        key22 :: NOTSET
+        key23 :: NOTSET
+
+        # DateTime
+        key24 :: NOTSET
+        key25 :: NOTSET
+
+        key26 :: NOTSET
+        key27 :: NOTSET
+
+        key28 :: NOTSET
+
+        # Range By Number Of Elements
+        key29 :: NOTSET
+
+        # Range By End Value
+        key30 :: NOTSET
+        key31 :: NOTSET
+
+    . ValueTypes4
+        # None defined
+___END

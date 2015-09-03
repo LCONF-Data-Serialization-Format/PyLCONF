@@ -1,0 +1,28 @@
+#!/usr/bin/env python3
+"""
+#### PyLCONF validation script
+
+```bash
+pylconf-validate path-to-first.lconf path-to-second.lconf
+```
+
+The LCONF-Data-Serialization-Format in short **LCONF** is a lightweight, text-based, data serialization format
+*with emphasis on being human-friendly*.
+
+The *PyLCONF package* is licensed under the MIT "Expat" License:
+
+> Copyright (c) 2014 - 2015, **peter1000** <https://github.com/peter1000>.
+"""
+from sys import (
+    exit as sys_exit,
+    version_info as sys_version_info,
+)
+
+from PyLCONF.validator import main as validator_main
+
+if sys_version_info[:2] < (3, 4):
+    sys_exit('LCONF is only tested with Python 3.4.3 or higher:\ncurrent version: {0:d}.{1:d}'.format(
+        sys_version_info[:2][0], sys_version_info[:2][1]
+    ))
+
+sys_exit(validator_main())

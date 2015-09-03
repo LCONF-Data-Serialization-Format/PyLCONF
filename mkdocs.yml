@@ -1,0 +1,20 @@
+site_name: PyLCONF
+site_url: https://lconf-data-serialization-format/PyLCONF/
+site_description: A LCONF parser and emitter for Python.
+site_author: peter1000
+site_favicon: images/lconf_favicon.ico
+
+repo_url: https://github.com/LCONF-Data-Serialization-Format/PyLCONF/
+
+pages:
+- Home: 'index.md'
+
+- About:
+    - Readme: about/readme.md
+    - License: about/license.md
+    - Changelog: about/changelog.md
+
+use_directory_urls: true
+copyright: Copyright (c) 2015, <strong>peter1000</strong> <a href="https://github.com/peter1000">https://github.com/peter1000</a>.
+
+theme: 'bootstrap'

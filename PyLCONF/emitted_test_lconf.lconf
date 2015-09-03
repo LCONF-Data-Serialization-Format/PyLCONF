@@ -1,0 +1,25 @@
+___SECTION :: 4 :: Example1
+
+# Comment-Line: below Main `Key-Value-Pair`
+# Key-Name: `FirstName` | Type: <LCONF_String> | <ITEM_REQUIRED_NOT_EMPTY>
+#   Default: <Mary> | Empty-Default: <>
+FirstName :: Mary
+
+# Key-Name: `LastName` | Type: <LCONF_String> | <ITEM_REQUIRED_NOT_EMPTY>
+#   Default: <Watson> | Empty-Default: <>
+LastName :: Watson
+
+# Key-Name: `Age` | Type: <LCONF_Integer> | <ITEM_OPTIONAL>
+#   Default: <48> | Empty-Default: <None>
+Age :: 48
+
+# Key-Name: `single_block_address` | Type: <LCONF_Single_Block> | <ITEM_REQUIRED_NOT_EMPTY>
+#   Default: <LCONF_DEFAULT_SINGLE_BLOCK> | Empty-Default: <LCONF_DEFAULT_SINGLE_BLOCK>
+. single_block_address
+    # Comment-Line:  Single_Block items
+    Street :: 768 5th Ave # 1332
+    City :: New York
+    State :: NY
+    ZIPCode :: 10019
+
+___END
