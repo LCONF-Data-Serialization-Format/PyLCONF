@@ -1,0 +1,16 @@
+Additional text
+
+___SECTION :: 4 :: STRICT :: Ranking of 1998 home runs
+. players | STRUCTURE_LIST
+    ITEM :: OPTIONAL | TYPE_STRING
+___END
+
+Additional text
+
+
+___SECTION :: 4 :: STRICT :: Team ranking
+. Ranking | STRUCTURE_LIST
+    ITEM :: OPTIONAL | TYPE_STRING
+___END
+
+Additional text

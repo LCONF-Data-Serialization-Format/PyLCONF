@@ -4,13 +4,12 @@
 #### Overview
 
 `extract_sections`: Extracts all LCONF-Sections from the source.
-`section_splitlines`: Split one LCONF-Section into lines.
-`prepare_section_lines`: Prevalidate a LCONF-Section raw string and returns it's Section-Lines skipping Blank-Lines and
-    Comment-Lines.
-`validate_one_section_string`: Validate one LCONF-Section raw string.
-`validate_sections_from_file`: Validates a LCONF-File containing one or more LCONF-Sections.
-`parse_section_lines`: Parses a LCONF-Section raw string already split into lines and updates the section object.
-`parse_section`: Parses a LCONF-Section raw string and updates the section object.
+`section_splitlines`: Split one LCONF-Section into lines and validates the LCONF-Section-Start-Line / End-Line
+`prepare_section_lines`: Prevalidate a LCONF-Section raw string and returns it's Section-Lines skipping
+    LCONF_BLANK_LINE and LCONF-Section-Comment-Line.
+`validate_one_section_fast`: Validate one LCONF-Section raw string fast.
+`validate_one_section_complet`: Validate one LCONF-Section raw string completly.
+
 """
 from os.path import (
     abspath as path_abspath,
@@ -20,52 +19,46 @@ from os.path import (
 )
 
 from PyLCONF.constants import (
+    ### Single Characters
+
+    LCONF_SPACE,
     ### Literal Name Tokens
     LCONF_SECTION_START as SECTION_START_TOKEN,
     LCONF_SECTION_END   as SECTION_END_TOKEN,
-
+    LCONF_FORMAT_LCONF,
+    LCONF_FORMAT_SCHEMA_STRICT,
+    LCONF_FORMAT_SCHEMA_FLEXIBLE,
     ### Structural Tokens
+    STRUCTURE_LIST_IDENTIFIER,
+    STRUCTURE_LIST_VALUE_SEPARATOR,
+    STRUCTURE_TABLE_IDENTIFIER,
+    STRUCTURE_TABLE_VALUE_SEPARATOR,
+    STRUCTURE_SINGLE_BLOCK_IDENTIFIER,
+    STRUCTURE_BLOCKS_IDENTIFIER,
+    LCONF_COMMENT_LINE_IDENTIFIER,
     LCONF_KEY_VALUE_SEPARATOR,
-    LCONF_LIST_IDENTIFIER,
-    LCONF_TABLE_IDENTIFIER,
-    LCONF_TABLE_VALUE_SEPARATOR,
-    LCONF_SINGLE_BLOCK_IDENTIFIER,
-    LCONF_REPEATED_BLOCK_IDENTIFIER,
-
-    ### Value Types
-    LCONF_Comment,
-    LCONF_String,
-    LCONF_Integer,
-    LCONF_Single_Block,
-
-    # Item-Requirement-Option
-    ITEM_OPTIONAL,
-    ITEM_REQUIRED,
-    ITEM_REQUIRED_NOT_EMPTY,
-
-    # EMIT Default-Comment Options
-    EMIT_NO_COMMENTS,
-    EMIT_ONLY_MANUAL_COMMENTS,
-    EMIT_ALL_COMMENTS,
-
-    # Others
-    LCONF_EMPTY_STRING,
-    LCONF_BLANK_COMMENT_LINE,
-
-    COMMENT_DUMMY,
 )
 
-from PyLCONF.structure_classes import (
-    Root,
-
-    prepare_default_obj,
+from PyLCONF.utilities import (
+    Err,
+    SectionErr,
 )
 
-from PyLCONF.utilities import Err
 
+LENGTH_START_TOKEN   = 10
+LENGTH_END_TOKEN     = 6
 
-LENGTH_START_TOKEN = len(SECTION_START_TOKEN)
-LENGTH_END_TOKEN   = len(SECTION_END_TOKEN)
+# Minimum expected length <___SECTION :: 4 :: LCONF :: X>
+MIN_FIRSTLINE_LENGTH = 29
+
+SECTION_FORMAT_PATTERN = " :: LCONF :: "
+SCHEMA_STRICT_FORMAT_PATTERN = " :: STRICT :: "
+SCHEMA_FLEXIBLE_FORMAT_PATTERN = " :: FLEXIBLE :: "
+
+SECTION_NAME_START_IDX = 28
+SCHEMA_STRICT_NAME_START_IDX = 29
+SCHEMA_FLEXIBLE_NAME_START_IDX = 31
+
 
 # =================================================================================================================== #
 
@@ -100,19 +93,16 @@ def extract_sections(source):
     # return lconf_sections
     #+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    length_start_token = len(SECTION_START_TOKEN)
-    length_end_token = len(SECTION_END_TOKEN)
-
     lconf_sections = []
     # Fastest: read the whole file at once and cut all between first : ___SECTION and last ___END in case there is a
     #         lot of additional text.
     # Raise already error if one of them is not found(using str.index)
     first_start_idx = source.index(SECTION_START_TOKEN)
     last_end_idx = source.rindex(SECTION_END_TOKEN)
-    main_text_source = source[first_start_idx:last_end_idx + length_end_token]
+    main_text_source = source[first_start_idx:last_end_idx + LENGTH_END_TOKEN]
 
     # Check multiple sections in source:
-    if SECTION_START_TOKEN in main_text_source[length_start_token:]:
+    if SECTION_START_TOKEN in main_text_source[LENGTH_START_TOKEN:]:
         start_idx = 0  # keep first ___SECTION extract_sections but search for ___END extract_sections
         search_for_start = False
         from_here_idx = start_idx
@@ -129,40 +119,34 @@ def extract_sections(source):
                     raise Err('extract_sections', [
                         'SECTION_END_TOKEN NOT FOUND: expected <{}>'.format(SECTION_END_TOKEN),
                         '',
-                        '',
                         '==================',
                         '{}'.format(main_text_source[from_here_idx:]),
                         '==================',
-                        '',
                         ''
                     ])
                 # add doc
-                end_idx_with_extract_sections = from_here_idx + end_idx + length_end_token
+                end_idx_with_extract_sections = from_here_idx + end_idx + LENGTH_END_TOKEN
                 tmp_section_txt = main_text_source[from_here_idx:end_idx_with_extract_sections]
-                if SECTION_START_TOKEN in tmp_section_txt[length_start_token:]:
+                if SECTION_START_TOKEN in tmp_section_txt[LENGTH_START_TOKEN:]:
                     raise Err('extract_sections', [
-                        'LCONF-Section-Start FOUND within LCONF-Section. Section text:',
-                        '',
+                        'LCONF_SECTION_START FOUND within LCONF-Section. Section text:',
                         '',
                         '==================',
                         '{}'.format(tmp_section_txt),
                         '==================',
-                        '',
                         ''
                     ])
                 lconf_sections.append(main_text_source[from_here_idx:end_idx_with_extract_sections])
                 search_for_start = True
                 from_here_idx = end_idx_with_extract_sections
     else:
-        if SECTION_END_TOKEN in main_text_source[:-length_end_token]:
+        if SECTION_END_TOKEN in main_text_source[:-LENGTH_END_TOKEN]:
             raise Err('extract_sections', [
-                'LCONF-Section-End FOUND within LCONF-Section. Section text:',
-                '',
+                'LCONF_SECTION_END FOUND within LCONF-Section. Section text:',
                 '',
                 '==================',
                 '{}'.format(main_text_source),
                 '==================',
-                '',
                 ''
             ])
         lconf_sections.append(main_text_source)
@@ -181,30 +165,28 @@ def section_splitlines(section_text):
 
     * `section_text`: (raw str) which contains exact one LCONF-Section
 
-    **Returns:** (tuple) section_lines, section_indentation_number, section_name
+    **Returns:** (tuple) section_lines, section_indentation_number, section_format, section_name
 
     *Validates:*
 
     * LCONF-Section-Start-Line (first line)
-    * Section-End-Line (last line)
+    * LCONF-Section-End-Line (last line)
     """
 
     section_lines = section_text.splitlines()
     first_line = section_lines[0]
     length_first_line = len(first_line)
     # FIRST LINE: special
-    # Minimum expected length <___SECTION :: 4 :: X>    LENGTH_START_TOKEN + 10
-    min_firstline_length = LENGTH_START_TOKEN + 10
-    if length_first_line < min_firstline_length:
+    if length_first_line < MIN_FIRSTLINE_LENGTH:
         raise Err('section_splitlines', [
-            'FIRST LINE ERROR: Minimum expected length: <{}> Got: <{}>'.format(min_firstline_length,
+            'FIRST LINE ERROR: Minimum expected length: <{}> Got: <{}>'.format(MIN_FIRSTLINE_LENGTH,
                                                                                length_first_line),
             '',
             '<{}>'.format(first_line)
         ])
-    elif first_line[-1] == ' ':
+    elif first_line[-1] == LCONF_SPACE:
         raise Err('section_splitlines', [
-            'FIRST LINE ERROR: TRAILING SPACE',
+            'FIRST LINE ERROR: Trailing space',
             '',
             '<{}>'.format(first_line)
         ])
@@ -220,50 +202,70 @@ def section_splitlines(section_text):
     section_indentation_number_ord = ord(section_indentation_number_char)
     if section_indentation_number_ord < 50 or section_indentation_number_ord > 56:
         raise Err('section_splitlines', [
-            'FIRST LINE ERROR: WRONG LCONF-Indentation-Per-Level Number:',
+            'FIRST LINE ERROR: Wrong LCONF-Indentation-Per-Level Number:',
             '                  MUST be one of <2,3,4,5,6,7,8>. Got: <{}>'.format(section_indentation_number_char),
             '',
             '<{}>'.format(first_line)
         ])
-    elif not first_line[LENGTH_START_TOKEN + 5:LENGTH_START_TOKEN + 9] == " :: ":
+
+    # Second part of the first line: all after the LCONF-Indentation-Per-Level Number
+    section_first_line_second_part = first_line[LENGTH_START_TOKEN + 5:]
+    if section_first_line_second_part.startswith(SECTION_FORMAT_PATTERN):
+        section_format = LCONF_FORMAT_LCONF
+        section_name_start_idx = SECTION_NAME_START_IDX
+    elif section_first_line_second_part.startswith(SCHEMA_STRICT_FORMAT_PATTERN):
+        section_format = LCONF_FORMAT_SCHEMA_STRICT
+        section_name_start_idx = SCHEMA_STRICT_NAME_START_IDX
+    elif section_first_line_second_part.startswith(SCHEMA_FLEXIBLE_FORMAT_PATTERN):
+        section_format = LCONF_FORMAT_SCHEMA_FLEXIBLE
+        section_name_start_idx = SCHEMA_FLEXIBLE_NAME_START_IDX
+    else:
         raise Err('section_splitlines', [
-            'FIRST LINE ERROR: LCONF-Indentation-Per-Level Number and LCONF-Section-Name MUST be separated by < :: >',
+            'FIRST LINE ERROR: After the Indentation-Per-Level Number we expected a LCONF_FORMAT_LCONF Pattern',
+            '                  <{}>'.format(SECTION_FORMAT_PATTERN),
+            '                  <{} >'.format(SCHEMA_STRICT_FORMAT_PATTERN),
+            '                  < {}>'.format(SCHEMA_FLEXIBLE_FORMAT_PATTERN),
             '',
-            '    <{}>'.format(first_line)
+            '                  But Got: <{}>'.format(section_first_line_second_part),
+            '',
+            '<{}>'.format(first_line)
         ])
-    elif first_line[LENGTH_START_TOKEN + 9] == ' ':
+
+
+    if first_line[section_name_start_idx] == LCONF_SPACE:
         raise Err('section_splitlines', [
-            'FIRST LINE ERROR: LCONF-Section-Name MUST be preceded by ONE Space.',
+            'FIRST LINE ERROR: LCONF-Section-Name MUST be preceded by only ONE Space.',
             '',
             '    <{}>'.format(first_line)
         ])
     section_indentation_number = int(section_indentation_number_char)
-    section_name_start_idx = min_firstline_length - 1
     section_name = first_line[section_name_start_idx:]
 
-    # Validate LCONF-Section-End (last line): no indent
+    # Validate LCONF_SECTION_END (last line): no indent
     if section_lines[-1] != SECTION_END_TOKEN:
         raise Err('section_splitlines', [
             'LCONF-Section-Name: {}'.format(section_name),
-            '  LCONF-Section-End LINE ERROR: EXPECTED: <{}>'.format(SECTION_END_TOKEN),
+            '  LCONF_SECTION_END LINE ERROR: EXPECTED: <{}>'.format(SECTION_END_TOKEN),
             '      <{}>'.format(section_lines[-1])
         ])
 
-    return section_lines, int(section_indentation_number_char), section_name
+    return section_lines, int(section_indentation_number_char), section_format, section_name
 
 
-def prepare_section_lines(section_lines, section_indentation_number, section_name):
+def prepare_section_lines(section_lines, section_indentation_number, section_format, section_name):
     """
     #### lconf_section.prepare_section_lines
 
-    Prevalidate a LCONF-Section raw string and returns it's Section-Lines skipping Blank-Lines and Comment-Lines.
+    Prevalidate a LCONF-Section raw string and returns it's Section-Lines skipping LCONF_BLANK_LINE and
+    LCONF-Section-Comment-Line.
 
-    `prepare_section_lines(section_lines, section_indentation_number, section_name)`
+    `prepare_section_lines(section_lines, section_indentation_number, section_format, section_name)`
 
     **Parameters:**
 
     * `section_lines`: (list) which contains exact one LCONF-Section's lines (inclusive Blank and Comment Lines)
     * `section_indentation_number`: (int) the LCONF-Indentation-Per-Level number
+    * `section_format`: (string) the section format
     * `section_name`: (string) the section name
 
     **Returns:** (list) prepared_lines without the LCONF-Section-Start-Line or raises an error
@@ -272,60 +274,55 @@ def prepare_section_lines(section_lines, section_indentation_number, section_nam
 
     * No Trailing Spaces
     * Indentation increase jumps (increase more than one LCONF-Indentation-Per-Level)
-    * Validates indentation is a multiple of LCONF-Indentation-Per-Level
+    * Indentation is a multiple of LCONF-Indentation-Per-Level
     """
     prepared_lines = []
     prev_indent = 0
     for orig_line in section_lines[1:]:
-        # Skip Blank-Line
+        # Skip complete Blank-Line (zero characters)
         if orig_line:
             # Check Trailing Space
-            if orig_line[-1] == ' ':
-                raise Err('validate_one_section_string', [
-                    'LCONF-Section-Name: {}'.format(section_name),
+            if orig_line[-1] == LCONF_SPACE:
+                raise SectionErr('prepare_section_lines', section_format, section_name, orig_line, [
                     'TRAILING SPACE ERROR',
-                    '<{}>'.format(orig_line)
                 ])
             # Get Indentation
             line_indent = len(orig_line) - len(orig_line.lstrip())
-            # Skip Comment-Line
-            if orig_line[line_indent] == '#':
+            # Skip LCONF-Section-Comment-Line
+            if orig_line[line_indent] == LCONF_COMMENT_LINE_IDENTIFIER:
                 continue
             # No Indentation Increase Jump
             if line_indent > prev_indent + section_indentation_number:
-                raise Err('validate_one_section_string', [
-                    'LCONF-Section-Name: {}'.format(section_name),
+                raise SectionErr('prepare_section_lines', section_format, section_name, orig_line, [
                     'INDENTATION INCREASE JUMP ERROR',
-                        '<{}>'.format(orig_line),
-                    '  prev_indent: <{}>  line_indent: <{}>'.format(prev_indent, line_indent),
+                    '',
+                    '  prev_indent: <{}> - current line_indent: <{}>'.format(prev_indent, line_indent),
                     '    Maximum expected indent: <{}> !!'.format(prev_indent + section_indentation_number),
                     '    Indentation must be a multiple of section_indentation_number: <{}>'.format(
-                        section_indentation_number)
+                        section_indentation_number),
                 ])
             # less indentation must be a multiple of section_indentation_number
             elif line_indent != prev_indent:
                 if (line_indent % section_indentation_number) != 0:
-                    raise Err('validate_one_section_string', [
-                       'SectionName: {}'.format(section_name),
-                       'INDENTATION LEVEL WRONG MULTIPLE ERROR:',
-                       '    <{}>'.format(orig_line),
-                       '    previous indent: <{}> - current line_indent: <{}> !!'.format(prev_indent, line_indent),
-                       '    Indentation must be a multiple of LCONF-Indentation-Per-Level: <{}>'.format(
-                            section_indentation_number)
+                    raise SectionErr('prepare_section_lines', section_format, section_name, orig_line, [
+                        'INDENTATION INCREASE JUMP ERROR',
+                        '',
+                        '  prev_indent: <{}> - current line_indent: <{}>'.format(prev_indent, line_indent),
+                        '    Indentation must be a multiple of section_indentation_number: <{}>'.format(
+                            section_indentation_number),
                     ])
-
             prepared_lines.append((line_indent, orig_line))
             prev_indent = line_indent
     return prepared_lines
 
 
-def validate_one_section_string(section_text):
+def validate_one_section_fast(section_text):
     """
-    #### lconf_section.validate_one_section_string
+    #### lconf_section.validate_one_section_fast
 
     Validate one LCONF-Section raw string: it must be already correctly extracted.
 
-    `validate_one_section_string(section_text)`
+    `validate_one_section_fast(section_text)`
 
     **Parameters:**
 
@@ -335,23 +332,22 @@ def validate_one_section_string(section_text):
 
     *Limitations:*
 
-    This does not validate correct LCONF-Key-Names or LCONF-Value-Types which are part of a LCONF-Template-Structure.
+    This does not validate correct LCONF-Key-Names or LCONF-Value-Types with a corresponding LCONF-Schema.
     It does also not validate unique LCONF-Key-Names.
 
     *Validates:*
 
     * LCONF-Section-Start-Line (first line)
-    * Section-End-Line (last line)
+    * LCONF-Section-End-Line (last line)
     * No Trailing Spaces
     * Indentation increase jumps (increase more than one LCONF-Indentation-Per-Level)
-    * Validates indentation is a multiple of LCONF-Indentation-Per-Level
-    * Checks for wrong multiple LCONF-List-Value-Separator in one line
+    * Indentation is a multiple of LCONF-Indentation-Per-Level
     * Validates Identifiers
+    * Table rows same number of columns
 
     """
-    section_lines, section_indentation_number, section_name = section_splitlines(section_text)
-
-    prepared_lines = prepare_section_lines(section_lines, section_indentation_number, section_name)
+    section_lines, section_indentation_number, section_format, section_name = section_splitlines(section_text)
+    prepared_lines = prepare_section_lines(section_lines, section_indentation_number, section_format, section_name)
 
     # ------------------------------------------------------------------
     is_single_block = 'is_single_block'
@@ -363,7 +359,7 @@ def validate_one_section_string(section_text):
 
     is_root = 'is_root'
 
-    # Number of LCONF-Vertical-Line in table rows: will be based on the first row
+    # Number of LCONF_VERTICAL_LINE in table rows: will be based on the first row
     table_rows_expected_pipes = -1
 
     prev_indent = 0
@@ -379,7 +375,7 @@ def validate_one_section_string(section_text):
     for cur_indent, orig_line in prepared_lines:
         next_idx += 1
         if next_idx < len_prepared_lines:
-            indentation_next_possible_level = cur_indent + section_indentation_number
+            # indentation_next_possible_level = cur_indent + section_indentation_number
             # CHECK NESTED STACK
             if cur_stack_idx >= 0:
                 # Current Indent same or less than: check_indent
@@ -405,116 +401,112 @@ def validate_one_section_string(section_text):
             orig_stack_situation = stack_situation
 
             # ====  ==== ==== continue orig_stack_situation ====  ==== ====   #
-            # LCONF-List (General-List): Associates a LCONF-Key-Name with an ordered sequence (list) of data values.
+            # STRUCTURE_LIST (General-List): Associates a LCONF-Key-Name with an ordered sequence (list) of data values
             if orig_stack_situation == is_general_list:
-                # may not contain value items:
-                #   LCONF-Key-Value-Separator
-                #   LCONF-Table-Identifier
-                #   LCONF-List-Identifier
-                #   LCONF-Single-Block-Identifier
-                #   LCONF-Repeated-Block-Identifier
-                if (LCONF_KEY_VALUE_SEPARATOR in orig_line or
-                    orig_line[cur_indent] == LCONF_TABLE_IDENTIFIER or
-                    orig_line[cur_indent] == LCONF_LIST_IDENTIFIER or
-                    orig_line[cur_indent] == LCONF_SINGLE_BLOCK_IDENTIFIER or
-                    orig_line[cur_indent] == LCONF_REPEATED_BLOCK_IDENTIFIER
+                # MUST NOTt contain value items:
+                #   STRUCTURE_LIST_IDENTIFIER
+                #   STRUCTURE_TABLE_IDENTIFIER
+                #   STRUCTURE_SINGLE_BLOCK_IDENTIFIER
+                #   STRUCTURE_BLOCKS_IDENTIFIER
+                #   LCONF_KEY_VALUE_SEPARATOR
+                if (orig_line[cur_indent] == STRUCTURE_LIST_IDENTIFIER or
+                    orig_line[cur_indent] == STRUCTURE_TABLE_IDENTIFIER or
+                    orig_line[cur_indent] == STRUCTURE_SINGLE_BLOCK_IDENTIFIER or
+                    orig_line[cur_indent] == STRUCTURE_BLOCKS_IDENTIFIER or
+                    LCONF_KEY_VALUE_SEPARATOR in orig_line
                     ):
-                    raise Err('validate_one_section_string', [
-                       'SectionName: {}'.format(section_name),
-                       '`LCONF-List (General-List)` WRONG ITEM ERROR:',
-                       '  <{}>'.format(orig_line),
-                       '    orig_stack_situation: <{}>'.format(orig_stack_situation),
-                       '      `Lists` may only contain LCONF-Values'
+                    raise SectionErr('validate_one_section_fast', section_format, section_name, orig_line, [
+                        'STRUCTURE_LIST ERROR: wrong item',
+                        '',
+                        '    orig_stack_situation: <{}>'.format(orig_stack_situation),
+                        '        `Lists` may only contain LCONF-Values',
                     ])
 
-            # LCONF-Table: Associates a LCONF-Key-Name with ordered tabular-data (columns and rows).
+            # STRUCTURE_TABLE: Associates a LCONF-Key-Name with ordered tabular-data (columns and rows).
             elif orig_stack_situation == is_table:
-                # may not contain value items:
-                #   LCONF-Key-Value-Separator
-                #   LCONF-List-Identifier
-                #   LCONF-Single-Block-Identifier
-                #   LCONF-Repeated-Block-Identifier
+                # MUST NOTt contain value items:
+                #   STRUCTURE_LIST_IDENTIFIER
+                #   STRUCTURE_SINGLE_BLOCK_IDENTIFIER
+                #   STRUCTURE_BLOCKS_IDENTIFIER
+                #   LCONF_KEY_VALUE_SEPARATOR
                 #
-                #   NOTE: LCONF-Table-Identifier and LCONF_TABLE_VALUE_SEPARATOR  are the same.
-                #   First and last must be a LCONF_TABLE_VALUE_SEPARATOR - No need to check other identifiers
-                if (LCONF_KEY_VALUE_SEPARATOR in orig_line or
-                    orig_line[cur_indent] != LCONF_TABLE_VALUE_SEPARATOR or
-                    orig_line[-1] != LCONF_TABLE_VALUE_SEPARATOR
+                #   NOTE: STRUCTURE_TABLE_IDENTIFIER and STRUCTURE_TABLE_VALUE_SEPARATOR are the same.
+                #   First and last must be a STRUCTURE_TABLE_VALUE_SEPARATOR - No need to check other identifiers
+                if (orig_line[cur_indent] != STRUCTURE_TABLE_VALUE_SEPARATOR or
+                    orig_line[-1] != STRUCTURE_TABLE_VALUE_SEPARATOR or
+                    LCONF_KEY_VALUE_SEPARATOR in orig_line
                     ):
-                    raise Err('validate_one_section_string', [
-                        'SectionName: {}'.format(section_name),
-                        '`LCONF-Table` WRONG ITEM ERROR:',
-                        '  <{}>'.format(orig_line),
+                    raise SectionErr('validate_one_section_fast', section_format, section_name, orig_line, [
+                        'STRUCTURE_TABLE ERROR: wrong item',
+                        '',
                         '    orig_stack_situation: <{}>'.format(orig_stack_situation),
-                        '      `Table Rows` MUST start and end with LCONF_TABLE_VALUE_SEPARATORs" <{}>'.format(
-                            LCONF_TABLE_VALUE_SEPARATOR),
-                        '      `Table Rows` MUST NOT contain LCONF-Key-Value-Separator'
+                        '        `Table Rows` MUST start and end with STRUCTURE_TABLE_VALUE_SEPARATORs" <{}>'.format(
+                            STRUCTURE_TABLE_VALUE_SEPARATOR),
+                        '    STRUCTURE_TABLE Row lines MUST NOT contain LCONF_KEY_VALUE_SEPARATORs.',
                     ])
 
                 # Item Lines (table rows) must contain all the same:
-                #    Number of LCONF-Vertical-Line in table rows: will be based on the first row
+                #    Number of STRUCTURE_TABLE_VALUE_SEPARATOR in table rows: will be based on the first row
                 #   table_rows_expected_pipes
-                if orig_line.count(LCONF_TABLE_VALUE_SEPARATOR) != table_rows_expected_pipes:
-                    raise Err('validate_one_section_string', [
-                       'SectionName: {}'.format(section_name),
-                       'LCONF-Table ITEM Line (Row) ERROR:',
-                       '  <{}>'.format(orig_line),
-                       '    orig_stack_situation: <{}>'.format(orig_stack_situation),
-                       '      Number of expected `Vertical-Line`: <{}>. Counted `Vertical-Line`: <{}>'.format(
-                          table_rows_expected_pipes,
-                          orig_line.count(LCONF_TABLE_VALUE_SEPARATOR)
-                       )
+                elif orig_line.count(STRUCTURE_TABLE_VALUE_SEPARATOR) != table_rows_expected_pipes:
+                    raise SectionErr('validate_one_section_fast', section_format, section_name, orig_line, [
+                        'STRUCTURE_TABLE ERROR: wrong columns number.',
+                        '',
+                        '    orig_stack_situation: <{}>'.format(orig_stack_situation),
+                        '        Number of expected `STRUCTURE_TABLE_VALUE_SEPARATOR`: <{}>.'.format(
+                            table_rows_expected_pipes),
+                        '        Counted `Vertical-Line`: <{}>'.format(
+                            orig_line.count(STRUCTURE_TABLE_VALUE_SEPARATOR)),
                     ])
 
-            # LCONF-Repeated-Block: A collection of repeated LCONF-Single-Blocks.
+            # STRUCTURE_NAMED_BLOCKS: A collection of repeated named STRUCTURE_SINGLE_BLOCKs.
+            # STRUCTURE_UNNAMED_BLOCKS: A collection of repeated unnamed STRUCTURE_SINGLE_BLOCKs.
             elif orig_stack_situation == is_repeated_block:
-                # Repeated-Block may only contain single indented values: UnNamed or Named LCONF-Single-Blocks
-                if LCONF_KEY_VALUE_SEPARATOR in orig_line or orig_line[cur_indent] != LCONF_SINGLE_BLOCK_IDENTIFIER:
-                    raise Err('validate_one_section_string', [
-                       'SectionName: {}'.format(section_name),
-                       'WRONG TYPE ERROR:',
-                       '  <{}>'.format(orig_line),
-                       '    orig_stack_situation: <{}>'.format(orig_stack_situation),
-                       '      `LCONF-Named-Repeated-Block` MUST contain `Named LCONF-Single-Blocks`.'
+                # Repeated-Block may only contain single indented values: named or unnamed STRUCTURE_SINGLE_BLOCKs
+                if (LCONF_KEY_VALUE_SEPARATOR in orig_line or
+                    orig_line[cur_indent] != STRUCTURE_SINGLE_BLOCK_IDENTIFIER
+                    ):
+                    raise SectionErr('validate_one_section_fast', section_format, section_name, orig_line, [
+                        'STRUCTURE_BLOCKS ERROR: wrong item type.',
+                        '',
+                        '    orig_stack_situation: <{}>'.format(orig_stack_situation),
+                        '        `STRUCTURE_BLOCKS` MUST contain `STRUCTURE_SINGLE_BLOCKs`.',
                     ])
-
-                # Check correct: LCONF-Named-Repeated-Block: Named Single-Block Identifier Name.
+                # Check STRUCTURE_NAMED_BLOCKS Identifier has a Name.
                 if is_repeated_block_type == 'NAMED':
                     if len(orig_line) <= cur_indent + 1:
-                        raise Err('validate_one_section_string', [
-                           'SectionName: {}'.format(section_name),
-                           'LCONF-Named-Single-Block IDENTIFIER ERROR:',
-                           '  <{}>'.format(orig_line),
-                           '    Named-Repeated-Block item lines MUST have a named Single-Block-Identifier.'
+                        raise SectionErr('validate_one_section_fast', section_format, section_name, orig_line, [
+                            'STRUCTURE_NAMED_BLOCKS ERROR: IDENTIFIER line.',
+                            '',
+                            '    orig_stack_situation: <{}>'.format(orig_stack_situation),
+                            '       `STRUCTURE_NAMED_BLOCKS` item line MUST have a name.',
                         ])
-                    if orig_line[cur_indent + 1] != ' ' or orig_line[cur_indent + 2] == ' ':
-                        raise Err('validate_one_section_string', [
-                           'SectionName: {}'.format(section_name),
-                           'LCONF-Named-Single-Block IDENTIFIER ERROR:',
-                           '  <{}>'.format(orig_line),
-                           '    There MUST be ONE SPACE after the LCONF-Single-Block-Identifier `.`'
+                    elif orig_line[cur_indent + 1] != LCONF_SPACE or orig_line[cur_indent + 2] == LCONF_SPACE:
+                        raise SectionErr('validate_one_section_fast', section_format, section_name, orig_line, [
+                            'STRUCTURE_NAMED_BLOCKS ERROR: IDENTIFIER line.',
+                            '',
+                            '    orig_stack_situation: <{}>'.format(orig_stack_situation),
+                            '    There MUST be ONE SPACE after the STRUCTURE_SINGLE_BLOCK_IDENTIFIER <{}>.'.format(
+                                STRUCTURE_SINGLE_BLOCK_IDENTIFIER),
                         ])
-
-                # Check correct: LCONF-UnNamed-Repeated-Block: UnNamed Single-Block Identifier Name.
                 elif is_repeated_block_type == 'UNNAMED':
                     if len(orig_line) > cur_indent + 1:
-                        raise Err('validate_one_section_string', [
-                           'SectionName: {}'.format(section_name),
-                           'LCONF-UnNamed-Single-Block IDENTIFIER ERROR:',
-                           '  <{}>'.format(orig_line),
-                           '    UnNamed-Repeated-Block item lines MUST only have one LCONF-Single-Block-Identifier `.`'
+                        raise SectionErr('validate_one_section_fast', section_format, section_name, orig_line, [
+                            'STRUCTURE_UNNAMED_BLOCKS ERROR: IDENTIFIER line.',
+                            '',
+                            '    orig_stack_situation: <{}>'.format(orig_stack_situation),
+                            '       `STRUCTURE_UNNAMED_BLOCKS` item line MUST NOT have a name.',
                         ])
                 else:
-                    raise Err('validate_one_section_string', [
-                       'SectionName: {}'.format(section_name),
-                       'WRONG Repeated-Block Item ERROR:',
-                       '  <{}>'.format(orig_line),
-                       '    orig_stack_situation: <{}>'.format(orig_stack_situation),
-                       '      `LCONF-Repeated-Block` Expected a: `Named or UnNamed LCONF-Single-Block type.',
-                       '       Got: <{}>'.format(is_repeated_block_type)
+                    raise SectionErr('validate_one_section_fast', section_format, section_name, orig_line, [
+                        'STRUCTURE_BLOCKS ERROR: WRONG Blocks type.',
+                        '',
+                        '    orig_stack_situation: <{}>'.format(orig_stack_situation),
+                        '       `STRUCTURE_BLOCKS` Expected a: NAMED or UNNAMED is_repeated_block_type.',
+                        '       Got: <{}>'.format(is_repeated_block_type),
                     ])
 
-                # Check Empty LCONF-Single-Block
+                # Check STRUCTURE_BLOCKS: Item Empty STRUCTURE_SINGLE_BLOCK
                 next_line_indent, next_line = prepared_lines[next_idx]
                 if next_line_indent == cur_indent + section_indentation_number:
                     stack_situation = is_single_block
@@ -525,50 +517,37 @@ def validate_one_section_string(section_text):
                         stack.extend(['STACK', 'STACK', 'STACK', 'STACK', 'STACK',
                                       'STACK', 'STACK', 'STACK', 'STACK', 'STACK'])
                         len_stack += 10
-                # LCONF-Repeated-Block: EMPTY BLK-Item (LCONF-Single-Block):  No need to adjust the stack for this
+                # STRUCTURE_BLOCKS: EMPTY BLK-Item (STRUCTURE_SINGLE_BLOCK):  No need to adjust the stack for this
                 else:
-                    # strictly speaking this is not not needed
+                    # strictly speaking this is not needed
                     is_repeated_block_type == 'EMPTY'
 
 
-            # LCONF-Single-Block: no need to do anything here: orig_stack_situation == is_single_block
+            # STRUCTURE_SINGLE_BLOCK: no need to do anything here: orig_stack_situation == is_single_block
 
             # Root: check any new situation: no need to do anything here: orig_stack_situation == is_root
 
             # ====  ==== ==== check new orig_stack_situation ====  ==== ====   #
             else:
-                # LCONF-List-Identifier
-                if orig_line[cur_indent] == LCONF_LIST_IDENTIFIER:
-                    if orig_line[cur_indent + 1] != ' ' or orig_line[cur_indent + 2] == ' ':
-                        raise Err('validate_one_section_string', [
-                           'SectionName: {}'.format(section_name),
-                           'LIST IDENTIFIER ERROR:',
-                           '  <{}>'.format(orig_line),
-                           '    There MUST be ONE SPACE before the List LCONF-Key-Name.'
+                # STRUCTURE_LIST_IDENTIFIER
+                if orig_line[cur_indent] == STRUCTURE_LIST_IDENTIFIER:
+                    if orig_line[cur_indent + 1] != LCONF_SPACE or orig_line[cur_indent + 2] == LCONF_SPACE:
+                        raise SectionErr('validate_one_section_fast', section_format, section_name, orig_line, [
+                            'STRUCTURE_LIST_IDENTIFIER ERROR.',
+                            '',
+                            '    There MUST be ONE SPACE before the List LCONF-Key-Name.',
                         ])
 
-                    # LCONF-Compact-List
+                    # Compact_STRUCTURE_LIST
                     if LCONF_KEY_VALUE_SEPARATOR in orig_line:
-                        # Validate: LCONF-Key-Value-Separator
+                        # Validate: LCONF_KEY_VALUE_SEPARATOR
                         if ' :: ' not in orig_line or '  ::' in orig_line or '::  ' in orig_line:
-                            raise Err('validate_one_section_string', [
-                               'SectionName: {}'.format(section_name),
-                               'LCONF-Compact-List: KEY-VALUE-SEPARATOR ERROR: expected < :: >',
-                               '  <{}>'.format(orig_line)
+                            raise SectionErr('validate_one_section_fast', section_format, section_name, orig_line, [
+                                'Compact_STRUCTURE_LIST: KEY-VALUE-SEPARATOR ERROR: expected < :: >',
                             ])
-
-                        # Check for wrong double LCONF_KEY_VALUE_SEPARATOR
-                        if orig_line.count(LCONF_KEY_VALUE_SEPARATOR) > 1:
-                            raise Err('validate_one_section_string', [
-                               'SectionName: {}'.format(section_name),
-                               'LCONF-Compact-List: more than one KEY-VALUE-SEPARATOR ERROR',
-                               '  <{}>'.format(orig_line)
-                            ])
-                        # No need to adjust the stack for LCONF-Compact-List
-
-                    # LCONF-General-List
+                    # General STRUCTURE_LIST
                     else:
-                        # Check Empty LCONF-General-List
+                        # Check STRUCTURE_LIST: Item Empty STRUCTURE_LIST
                         next_line_indent, next_line = prepared_lines[next_idx]
                         if next_line_indent == cur_indent + section_indentation_number:
                             stack_situation = is_general_list
@@ -579,34 +558,26 @@ def validate_one_section_string(section_text):
                                 stack.extend(['STACK', 'STACK', 'STACK', 'STACK', 'STACK',
                                               'STACK', 'STACK', 'STACK', 'STACK', 'STACK'])
                                 len_stack += 10
+                        # else: STRUCTURE_LIST: EMPTY:  No need to adjust the stack for this
 
-                        # else: LCONF-General-List: EMPTY:  No need to adjust the stack for this
-
-                # LCONF-Table-Identifier
-                elif orig_line[cur_indent] == LCONF_TABLE_IDENTIFIER:
-                    if orig_line[cur_indent + 1] != ' ' or orig_line[cur_indent + 2] == ' ':
-                        raise Err('validate_one_section_string', [
-                           'SectionName: {}'.format(section_name),
-                           'TABLE IDENTIFIER ERROR:',
-                           '  <{}>'.format(orig_line),
-                           '    There MUST be ONE SPACE before the Table LCONF-Key-Name.'
+                # STRUCTURE_TABLE_IDENTIFIER
+                elif orig_line[cur_indent] == STRUCTURE_TABLE_IDENTIFIER:
+                    if orig_line[cur_indent + 1] != LCONF_SPACE or orig_line[cur_indent + 2] == LCONF_SPACE:
+                        raise SectionErr('validate_one_section_fast', section_format, section_name, orig_line, [
+                            'STRUCTURE_TABLE_IDENTIFIER ERROR.',
+                            '',
+                            '    There MUST be ONE SPACE before the Table LCONF-Key-Name.',
                         ])
-                    elif orig_line[-1] == LCONF_TABLE_VALUE_SEPARATOR:
-                        raise Err('validate_one_section_string', [
-                           'SectionName: {}'.format(section_name),
-                           'TABLE IDENTIFIER ERROR:',
-                           '  <{}>'.format(orig_line),
-                           '    Table lines MUST NOT end with a LCONF-Table-Value-Separator.'
+                    elif orig_line[-1] == STRUCTURE_TABLE_VALUE_SEPARATOR:
+                        raise SectionErr('validate_one_section_fast', section_format, section_name, orig_line, [
+                            'STRUCTURE_TABLE_IDENTIFIER line MUST NOT end with a STRUCTURE_TABLE_VALUE_SEPARATOR.',
                         ])
-                    if LCONF_KEY_VALUE_SEPARATOR in orig_line:
-                        raise Err('validate_one_section_string', [
-                           'SectionName: {}'.format(section_name),
-                           'TABLE IDENTIFIER ERROR:',
-                           '  <{}>'.format(orig_line),
-                           '    Table-Identifier lines MUST NOT contain LCONF-Key-Value-Separators.'
+                    elif LCONF_KEY_VALUE_SEPARATOR in orig_line:
+                        raise SectionErr('validate_one_section_fast', section_format, section_name, orig_line, [
+                            'STRUCTURE_TABLE_IDENTIFIER lines MUST NOT contain LCONF_KEY_VALUE_SEPARATORs.',
                         ])
 
-                    # Check Empty LCONF-Table
+                    # Check STRUCTURE_TABLE: Empty (no Row lines)
                     next_line_indent, next_line = prepared_lines[next_idx]
                     if next_line_indent == cur_indent + section_indentation_number:
                         stack_situation = is_table
@@ -619,39 +590,34 @@ def validate_one_section_string(section_text):
                             len_stack += 10
 
                         # Item Lines (table rows) must contain all the same:
-                        #    Number of LCONF-Vertical-Line in table rows: will be based on the first row
-                        #   At least 2
-                        table_rows_expected_pipes = next_line.count(LCONF_TABLE_VALUE_SEPARATOR)
+                        #    Number of STRUCTURE_TABLE_VALUE_SEPARATOR in table rows: will be based on the first row
+                        #    At least 2
+                        table_rows_expected_pipes = next_line.count(STRUCTURE_TABLE_VALUE_SEPARATOR)
                         if table_rows_expected_pipes < 2:
-                            raise Err('validate_one_section_string', [
-                               'SectionName: {}'.format(section_name),
-                               'LCONF-Table ITEM Line (Row) ERROR:',
-                               '  <{}>'.format(next_line),
-                               '      Number of expected `Vertical-Line` must be at least 2.',
-                               '      Counted `Vertical-Line`: <{}>'.format(
-                                  orig_line.count(LCONF_TABLE_VALUE_SEPARATOR)
-                               )
+                            raise SectionErr('validate_one_section_fast', section_format, section_name, orig_line, [
+                                'STRUCTURE_TABLE ITEM Line (Row).',
+                                '    Number of expected `STRUCTURE_TABLE_VALUE_SEPARATOR` must be at least 2.',
+                                '    Counted `Vertical-Line`: <{}>'.format(
+                                    orig_line.count(STRUCTURE_TABLE_VALUE_SEPARATOR)),
+                                '',
+                                'next_line: <{}>'.format(next_line),
+                                '',
+                                'orig_line: <{}>'.format(orig_line)
                             ])
-                    # else: LCONF-Table: EMPTY:  No need to adjust the stack for this
+                    # else: STRUCTURE_TABLE: EMPTY:  No need to adjust the stack for this
 
-                # `LCONF-Single-Block Identifier`: These can only be Named Single-Block
-                elif orig_line[cur_indent] == LCONF_SINGLE_BLOCK_IDENTIFIER:
-                    if orig_line[cur_indent + 1] != ' ' or orig_line[cur_indent + 2] == ' ':
-                        raise Err('validate_one_section_string', [
-                        'SectionName: {}'.format(section_name),
-                        'LCONF-Single-Block IDENTIFIER ERROR:',
-                        '  <{}>'.format(orig_line),
-                        '    There MUST be ONE SPACE after the LCONF-Single-Block Identifier <{}>.'.format(
-                            LCONF_SINGLE_BLOCK_IDENTIFIER)
+                # `STRUCTURE_SINGLE_BLOCK_IDENTIFIER`: These can only be Named STRUCTURE_SINGLE_BLOCKs
+                elif orig_line[cur_indent] == STRUCTURE_SINGLE_BLOCK_IDENTIFIER:
+                    if orig_line[cur_indent + 1] != LCONF_SPACE or orig_line[cur_indent + 2] == LCONF_SPACE:
+                        raise SectionErr('validate_one_section_fast', section_format, section_name, orig_line, [
+                            'There MUST be ONE SPACE before the SINGLE_BLOCK name.',
                         ])
-                    if LCONF_KEY_VALUE_SEPARATOR in orig_line:
-                        raise Err('validate_one_section_string', [
-                           'SectionName: {}'.format(section_name),
-                           'SINGLE-BLOCK IDENTIFIER ERROR:',
-                           '  <{}>'.format(orig_line),
-                           '    Single-Block Identifier lines MUST NOT contain LCONF-Key-Value-Separators.'
+                    elif LCONF_KEY_VALUE_SEPARATOR in orig_line:
+                        raise SectionErr('validate_one_section_fast', section_format, section_name, orig_line, [
+                            'STRUCTURE_SINGLE_BLOCK_IDENTIFIER lines MUST NOT contain LCONF_KEY_VALUE_SEPARATORs.',
                         ])
-                    # Check Empty LCONF-Single-Block
+
+                    # Check STRUCTURE_SINGLE_BLOCK: Empty
                     next_line_indent, next_line = prepared_lines[next_idx]
                     if next_line_indent == cur_indent + section_indentation_number:
                         stack_situation = is_single_block
@@ -662,27 +628,21 @@ def validate_one_section_string(section_text):
                             stack.extend(['STACK', 'STACK', 'STACK', 'STACK', 'STACK',
                                           'STACK', 'STACK', 'STACK', 'STACK', 'STACK'])
                             len_stack += 10
-                    # else: LCONF-Single-Block: EMPTY:  No need to adjust the stack for this
+                    # else: STRUCTURE_SINGLE_BLOCK: EMPTY:  No need to adjust the stack for this
 
-                # `LCONF-Repeated-Block`
-                elif orig_line[cur_indent] == LCONF_REPEATED_BLOCK_IDENTIFIER:
-                    if orig_line[cur_indent + 1] != ' ' or orig_line[cur_indent + 2] == ' ':
-                        raise Err('validate_one_section_string', [
-                        'SectionName: {}'.format(section_name),
-                        'BLOCK IDENTIFIER ERROR:',
-                        '  <{}>'.format(orig_line),
-                        '    There MUST be ONE SPACE after the LCONF_REPEATED_BLOCK_IDENTIFIER <{}>.'.format(
-                            LCONF_REPEATED_BLOCK_IDENTIFIER)
+                # `STRUCTURE_BLOCKS_IDENTIFIER`
+                elif orig_line[cur_indent] == STRUCTURE_BLOCKS_IDENTIFIER:
+                    if orig_line[cur_indent + 1] != LCONF_SPACE or orig_line[cur_indent + 2] == LCONF_SPACE:
+                        raise SectionErr('validate_one_section_fast', section_format, section_name, orig_line, [
+                            'There MUST be ONE SPACE before the STRUCTURE_BLOCKS_IDENTIFIER name.',
                         ])
-                    if LCONF_KEY_VALUE_SEPARATOR in orig_line:
-                        raise Err('validate_one_section_string', [
-                           'SectionName: {}'.format(section_name),
-                           'SINGLE-BLOCK IDENTIFIER ERROR:',
-                           '  <{}>'.format(orig_line),
-                           '    Repeated-Block Identifier lines MUST NOT contain LCONF-Key-Value-Separators.'
+                    elif LCONF_KEY_VALUE_SEPARATOR in orig_line:
+                        raise SectionErr('validate_one_section_fast', section_format, section_name, orig_line, [
+                            'STRUCTURE_BLOCKS_IDENTIFIER lines MUST NOT contain LCONF_KEY_VALUE_SEPARATORs.',
                         ])
 
-                    # Check Empty LCONF-Repeated-Block
+
+                    # Check STRUCTURE_BLOCKS: Empty
                     next_line_indent, next_line = prepared_lines[next_idx]
                     if next_line_indent == cur_indent + section_indentation_number:
                         stack_situation = is_repeated_block
@@ -700,186 +660,479 @@ def validate_one_section_string(section_text):
                             is_repeated_block_type = 'NAMED'
                     # else: LCONF-Single-Block: EMPTY:  No need to adjust the stack for this
 
-                # `LCONF-Key-Value-Pair:  we checked already for: LCONF-List (Compact-List)
+                # `STRUCTURE_PAIR:  we checked already for: Compact_STRUCTURE_LIST
                 elif LCONF_KEY_VALUE_SEPARATOR in orig_line:
-                    # Validate: LCONF-Key-Value-Separator
+                    # Validate: LCONF_KEY_VALUE_SEPARATOR
                     if ('  ::' in orig_line or '::  ' in orig_line or
-                        (' :: ' not in orig_line and orig_line[-3:] != ' ::')):
-                        raise Err('validate_one_section_string', [
-                           'SectionName: {}'.format(section_name),
-                           'KEY-VALUE-SEPARATOR < :: > ERROR:',
-                           '  <{}>'.format(orig_line)
-                        ])
-
-                    # Check for wrong double LCONF_KEY_VALUE_SEPARATOR
-                    if orig_line.count(LCONF_KEY_VALUE_SEPARATOR) > 1:
-                        raise Err('validate_one_section_string', [
-                           'SectionName: {}'.format(section_name),
-                           'LCONF-Key-Value-Pair: more than one KEY-VALUE-SEPARATOR ERROR',
-                           '  <{}>'.format(orig_line)
+                        (' :: ' not in orig_line and orig_line[-3:] != ' ::')
+                        ):
+                        raise SectionErr('validate_one_section_fast', section_format, section_name, orig_line, [
+                            'LCONF_KEY_VALUE_SEPARATOR < :: > ERROR:',
                         ])
                 # WRONG
                 else:
-                    raise Err('validate_one_section_string', [
-                       'SectionName: {}'.format(section_name),
-                       'SOMETHING Wrong with this line: maybe indentation, wrong type ..',
-                       '  <{}>'.format(orig_line)
+                    raise SectionErr('validate_one_section_fast', section_format, section_name, orig_line, [
+                        'SOMETHING Wrong with this line: maybe indentation, wrong type ..',
                     ])
             prev_indent = cur_indent
     return True
 
 
-def validate_sections_from_file(path_to_lconf_file):
+def validate_one_section_complet(section_text, lconf_schema_obj):
     """
-    #### lconf_section.validate_sections_from_file
+    #### lconf_section.validate_one_section_complet
 
-    Validates a LCONF-File containing one or more LCONF-Sections.
+    Validate one LCONF-Section raw string completly: it must be already correctly extracted.
 
-    `validate_sections_from_file(path_to_lconf_file)`
+    `validate_one_section_complet(section_text)`
 
     **Parameters:**
 
-    * `path_to_lconf_file`: (str) path to a file
+    * `section_text`: (raw str) which contains exact one LCONF-Section
+    * `lconf_schema_obj`: (obj) LCONF-Schema object.
+
+    **Returns:** (bool) True if success else raises an error
+
+    *Validates:*
+
+    * LCONF-Section-Start-Line (first line)
+    * LCONF-Section-End-Line (last line)
+    * No Trailing Spaces
+    * Indentation increase jumps (increase more than one LCONF-Indentation-Per-Level)
+    * Indentation is a multiple of LCONF-Indentation-Per-Level
+    * Validates Identifiers
+
+    * Additional Validation
+
+        * Checks for wrong multiple LCONF-List-Value-Separator in one line
+        * Validates correct LCONF-Key-Names, LCONF-Item-Requirement-Option and LCONF-Value-Types with a corresponding
+            LCONF-Schema object.
+        * Table rows same number of columns as defined in the LCONF-Schema object.
+
+    """
+    print("\n\nvalidate_one_section_complet NOT YET IMPLEMENTED\n\n")
+
+                        # # Check for wrong double LCONF_KEY_VALUE_SEPARATOR
+                        # if orig_line.count(LCONF_KEY_VALUE_SEPARATOR) > 1:
+                        #     raise Err('validate_one_section_fast', [
+                        #        'SectionName: {}'.format(section_name),
+                        #        'Compact_STRUCTURE_LIST: more than one KEY-VALUE-SEPARATOR ERROR',
+                        #        '  <{}>'.format(orig_line)
+                        #     ])
+                        # # No need to adjust the stack for Compact_STRUCTURE_LIST
+
+    #                 # Check for wrong double LCONF_KEY_VALUE_SEPARATOR
+    #                 if orig_line.count(LCONF_KEY_VALUE_SEPARATOR) > 1:
+    #                     raise Err('validate_one_section_fast', [
+    #                        'SectionName: {}'.format(section_name),
+    #                        'LCONF-Key-Value-Pair: more than one KEY-VALUE-SEPARATOR ERROR',
+    #                        '  <{}>'.format(orig_line)
+    #                     ])
+
+
+def validate_one_section_schema(section_text):
+    """
+    #### lconf_section.validate_one_section_schema
+
+    Validate one LCONF-Section-Schema raw string: it must be already correctly extracted.
+
+    `validate_one_section_schema(section_text)`
+
+    **Parameters:**
+
+    * `section_text`: (raw str) which contains exact one LCONF-Section-Schema
 
     **Returns:** (bool) True if success else raises an error
 
     *Limitations:*
 
-    This does not validate correct LCONF-Key-Names or LCONF-Value-Types which are part of a LCONF-Template-Structure.
-    It does also not validate unique LCONF-Key-Names.
+    It does also not validate unique LCONF-Key-Names.  Maye TODO
 
     *Validates:*
 
     * LCONF-Section-Start-Line (first line)
-    * Section-End-Line (last line)
+    * LCONF-Section-End-Line (last line)
     * No Trailing Spaces
     * Indentation increase jumps (increase more than one LCONF-Indentation-Per-Level)
-    * Validates indentation is a multiple of LCONF-Indentation-Per-Level
-    * Checks for wrong multiple LCONF-List-Value-Separator in one line
+    * Indentation is a multiple of LCONF-Indentation-Per-Level
     * Validates Identifiers
+    * Table rows same number of columns
 
     """
-    if not path_isfile(path_to_lconf_file):
-        raise Err('validate_sections_from_file', [
-           'Input path seems not to be a file:'
-           '   <{}>'.format(path_to_lconf_file)
-        ])
+    section_lines, section_indentation_number, section_format, section_name = section_splitlines(section_text)
 
-    print('\n\n====== VALIDATING SECTIONS IN FILE:\n   <{}>'.format(path_to_lconf_file))
-    with open(path_to_lconf_file, 'r') as io:
-        for section_lconf_source in extract_sections(io.read()):
-            validate_one_section_string(section_lconf_source)
+    if section_format ==
+    prepared_lines = prepare_section_lines(section_lines, section_indentation_number, section_format, section_name)
+
+    # ------------------------------------------------------------------
+    is_single_block = 'is_single_block'
+    is_general_list = 'is_general_list'
+    is_table = 'is_table'
+    is_repeated_block = 'is_repeated_block'
+    # is_repeated_block_type: NAMED or UNNAMED or EMPTY
+    is_repeated_block_type = 'NONE'
+
+    is_root = 'is_root'
+
+    # Number of LCONF_VERTICAL_LINE in table rows: will be based on the first row
+    table_rows_expected_pipes = -1
+
+    prev_indent = 0
+    check_indent = 0
+    stack = ['STACK', 'STACK', 'STACK', 'STACK', 'STACK', 'STACK', 'STACK', 'STACK', 'STACK', 'STACK']
+    len_stack = 10
+    cur_stack_idx = -1
+    stack_situation = is_root
+    next_idx = 0
+
+    len_prepared_lines = len(prepared_lines)
+
+    for cur_indent, orig_line in prepared_lines:
+        next_idx += 1
+        if next_idx < len_prepared_lines:
+            # indentation_next_possible_level = cur_indent + section_indentation_number
+            # CHECK NESTED STACK
+            if cur_stack_idx >= 0:
+                # Current Indent same or less than: check_indent
+                if cur_indent <= check_indent:
+                    check_idx = int(cur_indent / section_indentation_number)
+                    if check_idx == 0:
+                        stack = ['STACK', 'STACK', 'STACK', 'STACK', 'STACK',
+                                 'STACK', 'STACK', 'STACK', 'STACK', 'STACK']
+                        len_stack = 10
+                        cur_stack_idx = -1
+                        stack_situation = is_root
+                        check_indent = 0
+                    else:
+                        cur_stack_idx = check_idx - 1
+                        stack_situation = stack[cur_stack_idx]
+            else:
+                # Reset
+                cur_indent = 0
+                check_indent = cur_indent
+                cur_stack_idx = -1
+
+            # PROCESS ALL
+            orig_stack_situation = stack_situation
+
+            # ====  ==== ==== continue orig_stack_situation ====  ==== ====   #
+            # STRUCTURE_LIST (General-List): Associates a LCONF-Key-Name with an ordered sequence (list) of data values
+            if orig_stack_situation == is_general_list:
+                # MUST NOTt contain value items:
+                #   STRUCTURE_LIST_IDENTIFIER
+                #   STRUCTURE_TABLE_IDENTIFIER
+                #   STRUCTURE_SINGLE_BLOCK_IDENTIFIER
+                #   STRUCTURE_BLOCKS_IDENTIFIER
+                #   LCONF_KEY_VALUE_SEPARATOR
+                if (orig_line[cur_indent] == STRUCTURE_LIST_IDENTIFIER or
+                    orig_line[cur_indent] == STRUCTURE_TABLE_IDENTIFIER or
+                    orig_line[cur_indent] == STRUCTURE_SINGLE_BLOCK_IDENTIFIER or
+                    orig_line[cur_indent] == STRUCTURE_BLOCKS_IDENTIFIER or
+                    LCONF_KEY_VALUE_SEPARATOR in orig_line
+                    ):
+                    raise SectionErr('validate_one_section_schema', section_format, section_name, orig_line, [
+                        'STRUCTURE_LIST ERROR: wrong item',
+                        '',
+                        '    orig_stack_situation: <{}>'.format(orig_stack_situation),
+                        '        `Lists` may only contain LCONF-Values',
+                    ])
+
+            # STRUCTURE_TABLE: Associates a LCONF-Key-Name with ordered tabular-data (columns and rows).
+            elif orig_stack_situation == is_table:
+                # MUST NOTt contain value items:
+                #   STRUCTURE_LIST_IDENTIFIER
+                #   STRUCTURE_SINGLE_BLOCK_IDENTIFIER
+                #   STRUCTURE_BLOCKS_IDENTIFIER
+                #   LCONF_KEY_VALUE_SEPARATOR
+                #
+                #   NOTE: STRUCTURE_TABLE_IDENTIFIER and STRUCTURE_TABLE_VALUE_SEPARATOR are the same.
+                #   First and last must be a STRUCTURE_TABLE_VALUE_SEPARATOR - No need to check other identifiers
+                if (orig_line[cur_indent] != STRUCTURE_TABLE_VALUE_SEPARATOR or
+                    orig_line[-1] != STRUCTURE_TABLE_VALUE_SEPARATOR or
+                    LCONF_KEY_VALUE_SEPARATOR in orig_line
+                    ):
+                    raise SectionErr('validate_one_section_schema', section_format, section_name, orig_line, [
+                        'STRUCTURE_TABLE ERROR: wrong item',
+                        '',
+                        '    orig_stack_situation: <{}>'.format(orig_stack_situation),
+                        '        `Table Rows` MUST start and end with STRUCTURE_TABLE_VALUE_SEPARATORs" <{}>'.format(
+                            STRUCTURE_TABLE_VALUE_SEPARATOR),
+                        '    STRUCTURE_TABLE Row lines MUST NOT contain LCONF_KEY_VALUE_SEPARATORs.',
+                    ])
+
+                # Item Lines (table rows) must contain all the same:
+                #    Number of STRUCTURE_TABLE_VALUE_SEPARATOR in table rows: will be based on the first row
+                #   table_rows_expected_pipes
+                elif orig_line.count(STRUCTURE_TABLE_VALUE_SEPARATOR) != table_rows_expected_pipes:
+                    raise SectionErr('validate_one_section_schema', section_format, section_name, orig_line, [
+                        'STRUCTURE_TABLE ERROR: wrong columns number.',
+                        '',
+                        '    orig_stack_situation: <{}>'.format(orig_stack_situation),
+                        '        Number of expected `STRUCTURE_TABLE_VALUE_SEPARATOR`: <{}>.'.format(
+                            table_rows_expected_pipes),
+                        '        Counted `Vertical-Line`: <{}>'.format(
+                            orig_line.count(STRUCTURE_TABLE_VALUE_SEPARATOR)),
+                    ])
+
+            # STRUCTURE_NAMED_BLOCKS: A collection of repeated named STRUCTURE_SINGLE_BLOCKs.
+            # STRUCTURE_UNNAMED_BLOCKS: A collection of repeated unnamed STRUCTURE_SINGLE_BLOCKs.
+            elif orig_stack_situation == is_repeated_block:
+                # Repeated-Block may only contain single indented values: named or unnamed STRUCTURE_SINGLE_BLOCKs
+                if (LCONF_KEY_VALUE_SEPARATOR in orig_line or
+                    orig_line[cur_indent] != STRUCTURE_SINGLE_BLOCK_IDENTIFIER
+                    ):
+                    raise SectionErr('validate_one_section_schema', section_format, section_name, orig_line, [
+                        'STRUCTURE_BLOCKS ERROR: wrong item type.',
+                        '',
+                        '    orig_stack_situation: <{}>'.format(orig_stack_situation),
+                        '        `STRUCTURE_BLOCKS` MUST contain `STRUCTURE_SINGLE_BLOCKs`.',
+                    ])
+                # Check STRUCTURE_NAMED_BLOCKS Identifier has a Name.
+                if is_repeated_block_type == 'NAMED':
+                    if len(orig_line) <= cur_indent + 1:
+                        raise SectionErr('validate_one_section_schema', section_format, section_name, orig_line, [
+                            'STRUCTURE_NAMED_BLOCKS ERROR: IDENTIFIER line.',
+                            '',
+                            '    orig_stack_situation: <{}>'.format(orig_stack_situation),
+                            '       `STRUCTURE_NAMED_BLOCKS` item line MUST have a name.',
+                        ])
+                    elif orig_line[cur_indent + 1] != LCONF_SPACE or orig_line[cur_indent + 2] == LCONF_SPACE:
+                        raise SectionErr('validate_one_section_schema', section_format, section_name, orig_line, [
+                            'STRUCTURE_NAMED_BLOCKS ERROR: IDENTIFIER line.',
+                            '',
+                            '    orig_stack_situation: <{}>'.format(orig_stack_situation),
+                            '    There MUST be ONE SPACE after the STRUCTURE_SINGLE_BLOCK_IDENTIFIER <{}>.'.format(
+                                STRUCTURE_SINGLE_BLOCK_IDENTIFIER),
+                        ])
+                elif is_repeated_block_type == 'UNNAMED':
+                    if len(orig_line) > cur_indent + 1:
+                        raise SectionErr('validate_one_section_schema', section_format, section_name, orig_line, [
+                            'STRUCTURE_UNNAMED_BLOCKS ERROR: IDENTIFIER line.',
+                            '',
+                            '    orig_stack_situation: <{}>'.format(orig_stack_situation),
+                            '       `STRUCTURE_UNNAMED_BLOCKS` item line MUST NOT have a name.',
+                        ])
+                else:
+                    raise SectionErr('validate_one_section_schema', section_format, section_name, orig_line, [
+                        'STRUCTURE_BLOCKS ERROR: WRONG Blocks type.',
+                        '',
+                        '    orig_stack_situation: <{}>'.format(orig_stack_situation),
+                        '       `STRUCTURE_BLOCKS` Expected a: NAMED or UNNAMED is_repeated_block_type.',
+                        '       Got: <{}>'.format(is_repeated_block_type),
+                    ])
+
+                # Check STRUCTURE_BLOCKS: Item Empty STRUCTURE_SINGLE_BLOCK
+                next_line_indent, next_line = prepared_lines[next_idx]
+                if next_line_indent == cur_indent + section_indentation_number:
+                    stack_situation = is_single_block
+                    check_indent = cur_indent
+                    cur_stack_idx += 1
+                    stack[cur_stack_idx] = stack_situation
+                    if cur_stack_idx > len_stack - 3:
+                        stack.extend(['STACK', 'STACK', 'STACK', 'STACK', 'STACK',
+                                      'STACK', 'STACK', 'STACK', 'STACK', 'STACK'])
+                        len_stack += 10
+                # STRUCTURE_BLOCKS: EMPTY BLK-Item (STRUCTURE_SINGLE_BLOCK):  No need to adjust the stack for this
+                else:
+                    # strictly speaking this is not needed
+                    is_repeated_block_type == 'EMPTY'
+
+
+            # STRUCTURE_SINGLE_BLOCK: no need to do anything here: orig_stack_situation == is_single_block
+
+            # Root: check any new situation: no need to do anything here: orig_stack_situation == is_root
+
+            # ====  ==== ==== check new orig_stack_situation ====  ==== ====   #
+            else:
+                # STRUCTURE_LIST_IDENTIFIER
+                if orig_line[cur_indent] == STRUCTURE_LIST_IDENTIFIER:
+                    if orig_line[cur_indent + 1] != LCONF_SPACE or orig_line[cur_indent + 2] == LCONF_SPACE:
+                        raise SectionErr('validate_one_section_schema', section_format, section_name, orig_line, [
+                            'STRUCTURE_LIST_IDENTIFIER ERROR.',
+                            '',
+                            '    There MUST be ONE SPACE before the List LCONF-Key-Name.',
+                        ])
+
+                    # Compact_STRUCTURE_LIST
+                    if LCONF_KEY_VALUE_SEPARATOR in orig_line:
+                        # Validate: LCONF_KEY_VALUE_SEPARATOR
+                        if ' :: ' not in orig_line or '  ::' in orig_line or '::  ' in orig_line:
+                            raise SectionErr('validate_one_section_schema', section_format, section_name, orig_line, [
+                                'Compact_STRUCTURE_LIST: KEY-VALUE-SEPARATOR ERROR: expected < :: >',
+                            ])
+                    # General STRUCTURE_LIST
+                    else:
+                        # Check STRUCTURE_LIST: Item Empty STRUCTURE_LIST
+                        next_line_indent, next_line = prepared_lines[next_idx]
+                        if next_line_indent == cur_indent + section_indentation_number:
+                            stack_situation = is_general_list
+                            check_indent = cur_indent
+                            cur_stack_idx += 1
+                            stack[cur_stack_idx] = stack_situation
+                            if cur_stack_idx > len_stack - 3:
+                                stack.extend(['STACK', 'STACK', 'STACK', 'STACK', 'STACK',
+                                              'STACK', 'STACK', 'STACK', 'STACK', 'STACK'])
+                                len_stack += 10
+                        # else: STRUCTURE_LIST: EMPTY:  No need to adjust the stack for this
+
+                # STRUCTURE_TABLE_IDENTIFIER
+                elif orig_line[cur_indent] == STRUCTURE_TABLE_IDENTIFIER:
+                    if orig_line[cur_indent + 1] != LCONF_SPACE or orig_line[cur_indent + 2] == LCONF_SPACE:
+                        raise SectionErr('validate_one_section_schema', section_format, section_name, orig_line, [
+                            'STRUCTURE_TABLE_IDENTIFIER ERROR.',
+                            '',
+                            '    There MUST be ONE SPACE before the Table LCONF-Key-Name.',
+                        ])
+                    elif orig_line[-1] == STRUCTURE_TABLE_VALUE_SEPARATOR:
+                        raise SectionErr('validate_one_section_schema', section_format, section_name, orig_line, [
+                            'STRUCTURE_TABLE_IDENTIFIER line MUST NOT end with a STRUCTURE_TABLE_VALUE_SEPARATOR.',
+                        ])
+                    elif LCONF_KEY_VALUE_SEPARATOR in orig_line:
+                        raise SectionErr('validate_one_section_schema', section_format, section_name, orig_line, [
+                            'STRUCTURE_TABLE_IDENTIFIER lines MUST NOT contain LCONF_KEY_VALUE_SEPARATORs.',
+                        ])
+
+                    # Check STRUCTURE_TABLE: Empty (no Row lines)
+                    next_line_indent, next_line = prepared_lines[next_idx]
+                    if next_line_indent == cur_indent + section_indentation_number:
+                        stack_situation = is_table
+                        check_indent = cur_indent
+                        cur_stack_idx += 1
+                        stack[cur_stack_idx] = stack_situation
+                        if cur_stack_idx > len_stack - 3:
+                            stack.extend(['STACK', 'STACK', 'STACK', 'STACK', 'STACK',
+                                          'STACK', 'STACK', 'STACK', 'STACK', 'STACK'])
+                            len_stack += 10
+
+                        # Item Lines (table rows) must contain all the same:
+                        #    Number of STRUCTURE_TABLE_VALUE_SEPARATOR in table rows: will be based on the first row
+                        #    At least 2
+                        table_rows_expected_pipes = next_line.count(STRUCTURE_TABLE_VALUE_SEPARATOR)
+                        if table_rows_expected_pipes < 2:
+                            raise SectionErr('validate_one_section_schema', section_format, section_name, orig_line, [
+                                'STRUCTURE_TABLE ITEM Line (Row).',
+                                '    Number of expected `STRUCTURE_TABLE_VALUE_SEPARATOR` must be at least 2.',
+                                '    Counted `Vertical-Line`: <{}>'.format(
+                                    orig_line.count(STRUCTURE_TABLE_VALUE_SEPARATOR)),
+                                '',
+                                'next_line: <{}>'.format(next_line),
+                                '',
+                                'orig_line: <{}>'.format(orig_line)
+                            ])
+                    # else: STRUCTURE_TABLE: EMPTY:  No need to adjust the stack for this
+
+                # `STRUCTURE_SINGLE_BLOCK_IDENTIFIER`: These can only be Named STRUCTURE_SINGLE_BLOCKs
+                elif orig_line[cur_indent] == STRUCTURE_SINGLE_BLOCK_IDENTIFIER:
+                    if orig_line[cur_indent + 1] != LCONF_SPACE or orig_line[cur_indent + 2] == LCONF_SPACE:
+                        raise SectionErr('validate_one_section_schema', section_format, section_name, orig_line, [
+                            'There MUST be ONE SPACE before the SINGLE_BLOCK name.',
+                        ])
+                    elif LCONF_KEY_VALUE_SEPARATOR in orig_line:
+                        raise SectionErr('validate_one_section_schema', section_format, section_name, orig_line, [
+                            'STRUCTURE_SINGLE_BLOCK_IDENTIFIER lines MUST NOT contain LCONF_KEY_VALUE_SEPARATORs.',
+                        ])
+
+                    # Check STRUCTURE_SINGLE_BLOCK: Empty
+                    next_line_indent, next_line = prepared_lines[next_idx]
+                    if next_line_indent == cur_indent + section_indentation_number:
+                        stack_situation = is_single_block
+                        check_indent = cur_indent
+                        cur_stack_idx += 1
+                        stack[cur_stack_idx] = stack_situation
+                        if cur_stack_idx > len_stack - 3:
+                            stack.extend(['STACK', 'STACK', 'STACK', 'STACK', 'STACK',
+                                          'STACK', 'STACK', 'STACK', 'STACK', 'STACK'])
+                            len_stack += 10
+                    # else: STRUCTURE_SINGLE_BLOCK: EMPTY:  No need to adjust the stack for this
+
+                # `STRUCTURE_BLOCKS_IDENTIFIER`
+                elif orig_line[cur_indent] == STRUCTURE_BLOCKS_IDENTIFIER:
+                    if orig_line[cur_indent + 1] != LCONF_SPACE or orig_line[cur_indent + 2] == LCONF_SPACE:
+                        raise SectionErr('validate_one_section_schema', section_format, section_name, orig_line, [
+                            'There MUST be ONE SPACE before the STRUCTURE_BLOCKS_IDENTIFIER name.',
+                        ])
+                    elif LCONF_KEY_VALUE_SEPARATOR in orig_line:
+                        raise SectionErr('validate_one_section_schema', section_format, section_name, orig_line, [
+                            'STRUCTURE_BLOCKS_IDENTIFIER lines MUST NOT contain LCONF_KEY_VALUE_SEPARATORs.',
+                        ])
+
+
+                    # Check STRUCTURE_BLOCKS: Empty
+                    next_line_indent, next_line = prepared_lines[next_idx]
+                    if next_line_indent == cur_indent + section_indentation_number:
+                        stack_situation = is_repeated_block
+                        check_indent = cur_indent
+                        cur_stack_idx += 1
+                        stack[cur_stack_idx] = stack_situation
+                        if cur_stack_idx > len_stack - 3:
+                            stack.extend(['STACK', 'STACK', 'STACK', 'STACK', 'STACK',
+                                          'STACK', 'STACK', 'STACK', 'STACK', 'STACK'])
+                            len_stack += 10
+
+                        if len(next_line) == next_line_indent + 1:
+                            is_repeated_block_type = 'UNNAMED'
+                        else:
+                            is_repeated_block_type = 'NAMED'
+                    # else: LCONF-Single-Block: EMPTY:  No need to adjust the stack for this
+
+                # `STRUCTURE_PAIR:  we checked already for: Compact_STRUCTURE_LIST
+                elif LCONF_KEY_VALUE_SEPARATOR in orig_line:
+                    # Validate: LCONF_KEY_VALUE_SEPARATOR
+                    if ('  ::' in orig_line or '::  ' in orig_line or
+                        (' :: ' not in orig_line and orig_line[-3:] != ' ::')
+                        ):
+                        raise SectionErr('validate_one_section_schema', section_format, section_name, orig_line, [
+                            'LCONF_KEY_VALUE_SEPARATOR < :: > ERROR:',
+                        ])
+                # WRONG
+                else:
+                    raise SectionErr('validate_one_section_schema', section_format, section_name, orig_line, [
+                        'SOMETHING Wrong with this line: maybe indentation, wrong type ..',
+                    ])
+            prev_indent = cur_indent
     return True
 
-def parse_section_lines(lconf_obj, section_lines, section_name, template_structure_obj):
-    """
-    #### lconf_section.parse_section_lines
-
-    Parses a LCONF-Section raw string already split into lines and updates the section object.
-
-    `parse_section_lines(lconf_obj, section_lines, section_name, template_structure_obj)`
-
-    **Parameters:**
-
-    * `lconf_obj`: (obj) a prepared copy of template_structure_obj
-    * `section_lines`: (list)
-    * `section_name`: (str)
-    * `template_structure_obj`: (obj)
-    **Returns:** (obj) updated final lconf_obj.
-    """
-    lconf_obj.set_class__dict__item('section_name', section_name)
-
-    print("parse_section_lines: STILL MISSI CODE")
-
-    lconf_obj.set_class__dict__item('is_parsed', True)
-    return lconf_obj
-
-
-def parse_section(lconf_obj, section_text, template_structure_obj, validate=False):
-    """
-    #### lconf_section.parse_section
-
-    Parses a LCONF-Section raw string and updates the section object.
-
-    `parse_section(lconf_obj, section_text, template_structure_obj, validate=False)`
-
-    **Parameters:**
-
-    * `lconf_obj`: (obj) a prepared copy of template_structure_obj
-    * `section_text`: (raw str) which contains one LCONF-Section
-    * `template_structure_obj`: (obj)
-    * `validate`: (bool) if True the `section_text` is first validated and only afterwards parsed.
-
-    **Returns:** (obj) updated final lconf_obj.
-
-        * additionally updates some attributes
-    """
-    if validate:
-        print("parse_section: validate is not yet implemented.")
-    section_lines, section_indentation_number, section_name = section_splitlines(section_text)
-    return parse_section_lines(lconf_obj, section_lines, section_name, template_structure_obj)
 
 # =====================================================================================================================
 def TOOD_deletelater():
     print("\n\nTOOD_deletelater\n\n")
+    path_to_lconf_file = path_join(path_dirname(path_abspath(__file__)), "../lconf-examples/test.lconfsd")
+    with open(path_to_lconf_file, 'r') as io:
+        lconf_content = io.read()
+    #print("\n\n", lconf_content, "\n\n")
 
-    # ('Key-Name', 'Default-Value', Value-Type, Item-Requirement-Option, Empty-Replacement-Value),
-    lconf_template_structure = Root(4, "Example1", [
-       # Default LCONF_BLANK_COMMENT_LINE,
-       ('#1', LCONF_BLANK_COMMENT_LINE,                      LCONF_Comment, COMMENT_DUMMY, COMMENT_DUMMY),
-       # Default Comment Line
-       ('#2', '# Comment-Line: below Main `Key-Value-Pair`', LCONF_Comment, COMMENT_DUMMY, COMMENT_DUMMY),
-       ('key1value_pair_name', 'Tony',                       LCONF_String,  ITEM_OPTIONAL, LCONF_EMPTY_STRING),
-       ('key2value_pair_age',      48,                       LCONF_Integer, ITEM_OPTIONAL, None),
-    ])
-
+    # for idx, section_text in enumerate(extract_sections(lconf_content)):
+    #     print("\n\nSection: {} =====\n\n".format(idx), section_text, "\n\n")
+    #     #result_validation = validate_one_section_fast(section_text)
+    #     #print("\nresult_validation: ", result_validation)
     #
-    # print("\n\nlconf_template_structure.key_order: \n", lconf_template_structure.key_order)
-    # print("\n\nlconf_template_structure.key_order_no_comments: \n", lconf_template_structure.key_order_no_comments)
+    #     result_validation_schema = validate_one_section_schema(section_text)
+    #     print("\nresult_validation_schema: ", result_validation_schema)
+
+
+
+    #     section_lines, section_indentation_number, section_format, section_name = section_splitlines(section_text)
+    #     prepared_lines = prepare_section_lines(section_lines, section_indentation_number, section_format, section_name)
     #
-    # print("\n\nlconf_template_structure: \n", lconf_template_structure)
     #
-    # for k in lconf_template_structure.key_order:
-    #     print(k, " : ", lconf_template_structure[k])
-    #
-    # print("\n\nlconf_template_structure.default_section_name: \n", lconf_template_structure.default_section_name)
-    #
-    # lconf_template_structure.set_class__dict__item("default_section_name", "NEW NAME")
-    # print("\n\n   NEW NAME lconf_template_structure.default_section_name: \n", lconf_template_structure.default_section_name)
+    #     for line in prepared_lines:
+    #         print(line)
 
+#     section_text = """___SECTION :: 4 :: LCONF :: Own Test Section
+#
+# # OWN COMMENT
+# key1value_pair_name :: FRED
+# key2value_pair_age :: 17
+# ___END"""
+#     validate_one_section_fast(section_text)
 
-
-    # ===========
-    # with_comments = True
-    #emit_result = emit_default_obj(lconf_template_structure, EMIT_ONLY_MANUAL_COMMENTS)
-    #print("\n\nemit_result: \n\n", emit_result, "\n\n")
-    #
-    # path_to_lconf_file = path_join(path_dirname(path_abspath(__file__)), "emitted_test_lconf.lconf")
-    #
-    # with open(path_to_lconf_file, 'w') as io:
-    #     io.write(emit_result)
-
-    # ===========
-
-    default_obj_result = prepare_default_obj(lconf_template_structure, with_comments=False)
-    # print("\n\ndefault_obj_result: \n\n", default_obj_result, "\n\n")
-
-    #default_obj_result["key2value_pair_age"] = 99
-    #print("\n\ndefault_obj_result: \n\n", default_obj_result, "\n\n")
-
-    #print("\n\nlconf_template_structure: \n\n", lconf_template_structure, "\n\n")
-
-    # ===========
-    section_text = """___SECTION :: 4 :: Own Test Section
-
-# OWN COMMENT
-key1value_pair_name :: FRED
-key2value_pair_age :: 17
+    sectionschema_text = """___SECTION :: 4 :: STRICT :: Team ranking
+. Ranking | STRUCTURE_LIST
+    ITEM :: OPTIONAL | TYPE_STRING
 ___END"""
-    parse_section_obj = parse_section(default_obj_result, section_text, lconf_template_structure, validate=False)
-    print("\n\nparse_section_obj: \n\n", parse_section_obj, "\n\n")
-    print("\n\nparse_section_obj.section_name: <", parse_section_obj.section_name, ">")
-    print("\n\nparse_section_obj.is_parsed: <", parse_section_obj.is_parsed, ">")
+
+    result_validation_schema = validate_one_section_schema(sectionschema_text)
+    print("\nresult_validation_schema: ", result_validation_schema)
 
 
 if __name__ == '__main__':

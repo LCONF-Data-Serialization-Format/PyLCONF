@@ -3,15 +3,12 @@
 
 #### Overview
 
-`extract_sections`: Extracts all LCONF-Sections from the source.
-`section_splitlines`: Split one LCONF-Section into lines.
-`prepare_section_lines`: Prevalidate a LCONF-Section raw string and returns it's Section-Lines skipping Blank-Lines and
-    Comment-Lines.
-`validate_one_section_string`: Validate one LCONF-Section raw string.
-`validate_sections_from_file`: Validates a LCONF-File containing one or more LCONF-Sections.
-`parse_section_lines`: Parses a LCONF-Section raw string already split into lines and updates the section object.
-`parse_section`: Parses a LCONF-Section raw string and updates the section object.
+`validate_one_section_schema`: Validate one LCONF-Schema-Section raw string.
+`validate_schemas_from_file`: Validates a LCONF-Schema-File containing one or more LCONF-Schema-Sections.
 """
+
+
+
 
 
 

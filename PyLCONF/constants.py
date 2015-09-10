@@ -1,16 +1,24 @@
 ### Single Characters
-LCONF_SPACE          = '\u0020'
-LCONF_NUMBER_SIGN    = '\u0023'
-LCONF_ASTERISK       = '\u002a'
-LCONF_PLUS           = '\u002b'
-LCONF_COMMA          = '\u002c'
-LCONF_MINUS          = '\u002d'
-LCONF_PERIOD         = '\u002e'
-LCONF_SLASH          = '\u002f'
-LCONF_COLON          = '\u003a'
-LCONF_EQUALS_SIGN    = '\u003d'
-LCONF_UNDERSCORE     = '\u005f'
-LCONF_VERTICAL_LINE  = '\u007c'
+
+LCONF_SPACE                = '\u0020'
+LCONF_NUMBER_SIGN          = '\u0023'
+LCONF_LEFT_PARENTHESIS     = '\u0028'
+LCONF_RIGHT_PARENTHESIS    = '\u0029'
+LCONF_ASTERISK             = '\u002A'
+LCONF_PLUS                 = '\u002B'
+LCONF_COMMA                = '\u002C'
+LCONF_MINUS                = '\u002D'
+LCONF_PERIOD               = '\u002E'
+LCONF_SLASH                = '\u002F'
+LCONF_COLON                = '\u003A'
+LCONF_LESS_THAN_SIGN       = '\u003C'
+LCONF_EQUALS_SIGN          = '\u003D'
+LCONF_GREATER_THAN_SIGN    = '\u003E'
+LCONF_AT_SIGN              = '\u0040'
+LCONF_LEFT_SQUARE_BRACKET  = '\u005B'
+LCONF_RIGHT_SQUARE_BRACKET = '\u005D'
+LCONF_UNDERSCORE           = '\u005F'
+LCONF_VERTICAL_LINE        = '\u007C'
 
 ### Character Group
 #
@@ -27,76 +35,69 @@ LCONF_SMALL_LETTERS   = set(['\u0061', '\u0062', '\u0063', '\u0064', '\u0065', '
                              '\u0073', '\u0074', '\u0075', '\u0076', '\u0077', '\u0078', '\u0079', '\u007a'])
 
 ### Literal Name Tokens
-LCONF_SECTION_START = "\u005f\u005f\u005f\u0053\u0045\u0043\u0054\u0049\u004f\u004e"        # `___SECTION`
-LCONF_SECTION_END   = "\u005f\u005f\u005f\u0045\u004e\u0044"                                # `___END`
-LCONF_TRUE          = "\u0074\u0072\u0075\u0065"                                            # `true`
-LCONF_FALSE         = "\u0066\u0061\u006c\u0073\u0065"                                      # `false`
-LCONF_VALUE_NOTSET  = "\u004e\u004f\u0054\u0053\u0045\u0054"                                # `NOTSET`
-LCONF_FORCE         = "\u0046\u004f\u0052\u0043\u0045"                                      # `FORCE`
+LCONF_SECTION_START          = "\u005F\u005F\u005F\u0053\u0045\u0043\u0054\u0049\u004F\u004E"
+LCONF_SECTION_END            = "\u005F\u005F\u005F\u0045\u004E\u0044"
+LCONF_FORMAT_LCONF           = "\u004C\u0043\u004F\u004E\u0046"
+LCONF_FORMAT_SCHEMA_STRICT   = "\u0053\u0054\u0052\u0049\u0043\u0054"
+LCONF_FORMAT_SCHEMA_FLEXIBLE = "\u0046\u004C\u0045\u0058\u0049\u0042\u004C\u0045"
+LCONF_TRUE                   = "\u0074\u0072\u0075\u0065"
+LCONF_FALSE                  = "\u0066\u0061\u006C\u0073\u0065"
+LCONF_NOTSET                 = "\u004E\u004F\u0054\u0053\u0045\u0054"
+LCONF_FORCE                  = "\u0046\u004F\u0052\u0043\u0045"
 
 ### Structural Tokens
-LCONF_COMMENT_LINE_IDENTIFIER   = LCONF_NUMBER_SIGN
-LCONF_KEY_VALUE_SEPARATOR       = LCONF_COLON * 2                    # DOUBLE LCONF_COLON `::`
-LCONF_TABLE_IDENTIFIER          = LCONF_VERTICAL_LINE
-LCONF_TABLE_VALUE_SEPARATOR     = LCONF_VERTICAL_LINE
-LCONF_LIST_IDENTIFIER           = LCONF_MINUS
-LCONF_LIST_VALUE_SEPARATOR      = LCONF_COMMA
-LCONF_SINGLE_BLOCK_IDENTIFIER   = LCONF_PERIOD
-LCONF_REPEATED_BLOCK_IDENTIFIER = LCONF_ASTERISK
-LCONF_SINGLE_BLOCK_REUSE        = LCONF_EQUALS_SIGN * 2             # DOUBLE LCONF_EQUALS_SIGN  `==`
+STRUCTURE_LIST_IDENTIFIER            = LCONF_MINUS
+STRUCTURE_LIST_VALUE_SEPARATOR       = LCONF_COMMA
+STRUCTURE_TABLE_IDENTIFIER           = LCONF_VERTICAL_LINE
+STRUCTURE_TABLE_VALUE_SEPARATOR      = LCONF_VERTICAL_LINE
+STRUCTURE_SINGLE_BLOCK_IDENTIFIER    = LCONF_PERIOD
+STRUCTURE_NAMED_BLOCKS_IDENTIFIER    = LCONF_ASTERISK
+STRUCTURE_UNNAMED_BLOCKS_IDENTIFIER  = LCONF_ASTERISK
+LCONF_SINGLE_BLOCK_REUSE             = LCONF_EQUALS_SIGN * 2     # DOUBLE LCONF_EQUALS_SIGN  `==`
+LCONF_SCHEMA_SEPARATOR               = LCONF_VERTICAL_LINE
+LCONF_SCHEMA_COMMENT_LINE_IDENTIFIER = LCONF_SLASH
+LCONF_COMMENT_LINE_IDENTIFIER        = LCONF_NUMBER_SIGN
+LCONF_KEY_VALUE_SEPARATOR            = LCONF_COLON * 2           # DOUBLE LCONF_COLON `::`
 
-### Value Types
-LCONF_Comment              = "LCONF_Comment"
-LCONF_String               = "LCONF_String"
-LCONF_Boolean              = "LCONF_Boolean"
-LCONF_Integer              = "LCONF_Integer"
-LCONF_Single_Block         = "LCONF_Single_Block"
-LCONF_UnNamed_Single_Block = "LCONF_UnNamed_Single_Block"
-LCONF_Repeated_Block       = "LCONF_Repeated_Block"
+# add one common for: STRUCTURE_NAMED_BLOCKS_IDENTIFIER & STRUCTURE_UNNAMED_BLOCKS_IDENTIFIER
+STRUCTURE_BLOCKS_IDENTIFIER          = LCONF_ASTERISK
 
-# =================================================================================================================== #
+### LCONF-Value-Types Names
+TYPE_NOTSET               = "TYPE_NOTSET"
+TYPE_STRING               = "TYPE_STRING"
+TYPE_DIGITS               = "TYPE_DIGITS"
+TYPE_PATTERN_DIGITS       = "TYPE_PATTERN_DIGITS"
+TYPE_BOOLEAN              = "TYPE_BOOLEAN"
+TYPE_INTEGER              = "TYPE_INTEGER"
+TYPE_FLOAT                = "TYPE_FLOAT"
+TYPE_NUMBER               = "TYPE_NUMBER"
+TYPE_MONTH                = "TYPE_MONTH"
+TYPE_DAY                  = "TYPE_DAY"
+TYPE_MINUTE               = "TYPE_MINUTE"
+TYPE_SECOND               = "TYPE_SECOND"
+TYPE_SECOND_FRACTION      = "TYPE_SECOND_FRACTION"
+TYPE_DAY_MINUTE1          = "TYPE_DAY_MINUTE1"
+TYPE_DAY_MINUTE2          = "TYPE_DAY_MINUTE2"
+TYPE_DAY_SECOND1          = "TYPE_DAY_SECOND1"
+TYPE_DAY_SECOND2          = "TYPE_DAY_SECOND2"
+TYPE_DAY_SECOND_FRACTION1 = "TYPE_DAY_SECOND_FRACTION1"
+TYPE_DAY_SECOND_FRACTION2 = "TYPE_DAY_SECOND_FRACTION2"
+TYPE_RANGE_OF_ELEMENTS    = "TYPE_RANGE_OF_ELEMENTS"
+TYPE_RANGE_BY_END_VALUE   = "TYPE_RANGE_BY_END_VALUE"
 
-# LCONF-Integer: 64 bit (signed long) range expected (-9223372036854775808 to 9223372036854775807)
+# # LCONF-Integer: 64 bit (signed long) range expected (-9223372036854775808 to 9223372036854775807)
 LCONF_INTEGER_LOWEST  = -9223372036854775808
 LCONF_INTEGER_HIGHEST = +9223372036854775807
 
-# LCONF-EMPTY-String: A sequence of zero Unicode characters.
-LCONF_EMPTY_STRING = ""
+### LCONF-Item-Requirement-Option
+OPTIONAL           = "OPTIONAL"
+REQUIRED           = "REQUIRED"
+REQUIRED_NOT_EMPTY = "REQUIRED_NOT_EMPTY"
 
-LCONF_BLANK_COMMENT_LINE = LCONF_EMPTY_STRING
+### LCONF-Section Comment Emit Options Names
+EMIT_NO_COMMENTS          = "EMIT_NO_COMMENTS"           # No comments MUST be emitted.
+EMIT_ONLY_MANUAL_COMMENTS = "EMIT_ONLY_MANUAL_COMMENTS"  # Only manual LCONF-Schema-Comment-Lines MUST be emitted.
+EMIT_ALL_COMMENTS         = "EMIT_ALL_COMMENTS" # Auto-generated and manual LCONF-Schema-Comment-Lines MUST be emitted.
 
-LCONF_DEFAULT_SINGLE_BLOCK = "LCONF_DEFAULT_SINGLE_BLOCK"
-LCONF_EMPTY_REPEATED_BLOCK = "LCONF_EMPTY_REPEATED_BLOCK"
-
-# LCONF-Section-Item-Requirement-Option
-# * OPTIONAL
-#
-#     * Item is NOT REQUIRED be defined in a LCONF-Section
-#     * Item COULD be defined but set `NOTSET`
-#     * Item COULD be defined and set empty (which will overwrite any defaults)
-#     * Item COULD be defined and have set a value in accordance to the expected LCONF-Value-Type
-#
-# * REQUIRED (this can also be an empty value)
-#
-#     * Item MUST be defined in a LCONF-Section and MUST NOT be set `NOTSET`
-#     * Item MUST be defined and can be set empty (which will overwrite any defaults)
-#     * Item MUST be defined and can set a value in accordance to the expected LCONF-Value-Type
-#         (which will overwrite any defaults)
-#
-# * REQUIRED_NOT_EMPTY (this MUST NOT be an empty value)
-#
-#     * Item MUST be defined in a LCONF-Section and MUST NOT be set `NOTSET` and MUST NOT be set empty
-#     * Item MUST be defined and MUST set a value in accordance to the expected LCONF-Value-Type
-#
-# * COMMENT_DUMMY (Dummy for LCONF-Default-Comment-Lines)
-
-ITEM_OPTIONAL           = "ITEM_OPTIONAL"
-ITEM_REQUIRED           = "ITEM_REQUIRED"
-ITEM_REQUIRED_NOT_EMPTY = "ITEM_REQUIRED_NOT_EMPTY"
-
-COMMENT_DUMMY = "#"  # used for Default-Comment-Lines: Item-Requirement-Option, Empty-Replacement-Value
-
-# EMIT Default-Comment Options
-EMIT_NO_COMMENTS          = "EMIT_NO_COMMENTS"           # NO Comments at all
-EMIT_ONLY_MANUAL_COMMENTS = "EMIT_ONLY_MANUAL_COMMENTS"  # Only Manual Default Comments
-EMIT_ALL_COMMENTS         = "EMIT_ALL_COMMENTS"          # Auto Comments and Manual Default Comments
+### Diverse Other Terms
+LCONF_EMPTY_STRING = ""         # A sequence of zero Unicode characters.

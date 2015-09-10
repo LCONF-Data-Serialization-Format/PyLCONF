@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-#### PyLCONF LCONF-Section validation script
+#### PyLCONF LCONF-Schema validation script
 
 ```bash
-pylconf-validate path-to-first.lconf path-to-second.lconf
+pylconfsd-validate path-to-first.lconf path-to-second.lconf
 ```
 
 The LCONF-Data-Serialization-Format in short **LCONF** is a lightweight, text-based, data serialization format
@@ -18,11 +18,11 @@ from sys import (
     version_info as sys_version_info,
 )
 
-from PyLCONF.validator import main as validator_main
+from PyLCONF.schema_validator import main as schema_validator_main
 
 if sys_version_info[:2] < (3, 4):
     sys_exit('LCONF is only tested with Python 3.4.3 or higher:\ncurrent version: {0:d}.{1:d}'.format(
         sys_version_info[:2][0], sys_version_info[:2][1]
     ))
 
-sys_exit(validator_main())
+sys_exit(schema_validator_main())

@@ -320,6 +320,7 @@ cython_extension_name_sources = {
     # 'PyLCONF.main_code': ['PyLCONF/cython/main_code.pyx'],
     # 'PyLCONF.utilities': ['PyLCONF/cython/utilities.pyx'],
     # 'PyLCONF.validator': ['PyLCONF/cython/validator.pyx'],
+    # 'PyLCONF.schema_validator': ['PyLCONF/cython/schema_validator.pyx'],
     # 'PyLCONF.lconf_section': ['PyLCONF/cython/lconf_section.pyx'],
     # 'PyLCONF.lconf_schema': ['PyLCONF/cython/lconf_schema.pyx'],
 }
@@ -374,5 +375,6 @@ setuptools_setup(
     keywords='python markup configuration json yaml LCONF LCONF-Data-Serialization-Format serialization',
     scripts=[
         'bin/pylconf-validate',
+        'bin/pylconfsd-validate',
     ],
 )
